@@ -10,7 +10,7 @@ ROLE=Qt.ItemDataRole.UserRole
 class EventBrowser(QDialog):
     def __init__(self,window):
         super().__init__(window);self.window=window;self.inspector=None;self.stale=False
-        self.setWindowTitle('Event browser — read-only');self.resize(1200,820)
+        self.setWindowTitle('MysticForge — Event browser (read-only)');self.resize(1200,820)
         box=QVBoxLayout(self)
         title=QLabel('Events & references');title.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(title)
         self.note=QLabel();self.note.setWordWrap(True);box.addWidget(self.note)

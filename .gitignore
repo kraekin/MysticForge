@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+*.sfc
+*.smc
+*.srm
+*.mss
+*.autosave.json
+build/
+dist/
+*.egg-info/
+
+.venv-build/

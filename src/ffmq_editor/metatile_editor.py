@@ -21,7 +21,7 @@ def composition_changes(project,tileset,tile,graphics,bits):
 class MetatileWindow(QMainWindow):
     def __init__(self,w):
         super().__init__(w);self.w=w;self.loading=False;self.tile=0;self.quadrant=0;self.clipboard=None
-        self.setWindowTitle('Metatile editor');self.resize(1120,800)
+        self.setWindowTitle('MysticForge — Metatile editor');self.resize(1120,800)
         root=QWidget();self.setCentralWidget(root);box=QVBoxLayout(root)
         row=QHBoxLayout();row.addWidget(QLabel('Preview configuration'));self.context=QComboBox();row.addWidget(self.context,1)
         from .workspace_ui import version_name
@@ -51,7 +51,7 @@ class MetatileWindow(QMainWindow):
         self.feedback=QLabel();self.feedback.setWordWrap(True);mid.addWidget(self.feedback);split.addWidget(middle)
         right=QWidget();rb=QVBoxLayout(right);rb.addWidget(QLabel('8×8 source graphics · select to assign'))
         self.graphics=self.tile_list(32,49);rb.addWidget(self.graphics);split.addWidget(right);split.setSizes([220,620,280])
-        self.context.currentIndexChanged.connect(self.refresh);self.metatiles.currentRowChanged.connect(self.select_tile);self.graphics.itemClicked.connect(self.assign)
+        self.context.currentIndexChanged.connect(self.refresh);self.metatiles.currentRowChanged.connect(self.select_tile);self.graphics.itemClicked.connect(self.assign);self.graphics.itemActivated.connect(self.assign)
         self.context.setCurrentIndex(w.area_id);self.tile=w.brush;self.refresh()
     @staticmethod
     def tile_list(icon,cell):
@@ -73,24 +73,37 @@ class MetatileWindow(QMainWindow):
     def refresh(self,*_):
         if self.loading:return
         self.loading=True
+        scrolls=[(view,view.horizontalScrollBar().value(),view.verticalScrollBar().value()) for view in (self.metatiles,self.graphics,self.references)]
         try:
             w=self.w;area=w.rom.areas[self.area_id];attr=w.rom.attributes[area.attributes_id];self.tileset=attr.tileset
             self.pixels,self.defaults=w.renderer.graphics(area.attributes_id)
             state=w.project.state(self.area_id);self.colors=np.array([color_rgb(v) for v in w.project.palette(state.palette)],dtype=np.uint8).reshape(8,8,3)
             self.info.setText(f'Shared metatile set ${self.tileset:02X} · palette ${state.palette:02X}. Preview shows stored definitions before story remaps, with static source graphics. Different configurations can load different artwork for the same component IDs.')
-            self.metatiles.clear()
-            for i in range(128):self.metatiles.addItem(QListWidgetItem(QIcon(self.pixmap(self.image(i),48)),f'{i:02X}'))
+            # Keep item identities stable: refresh can run inside mousePressEvent.
+            if not self.metatiles.count():
+                for i in range(128):self.metatiles.addItem(QListWidgetItem(f'{i:02X}'))
+            for i in range(128):self.metatiles.item(i).setIcon(QIcon(self.pixmap(self.image(i),48)))
             self.metatiles.setCurrentRow(self.tile)
-            self.graphics.clear();_,bits=composition(w.project,self.tileset,self.tile)
+            if not self.graphics.count():
+                for i in range(256):
+                    item=QListWidgetItem(f'{i:02X}');item.setData(Qt.ItemDataRole.UserRole,i);self.graphics.addItem(item)
+            _,bits=composition(w.project,self.tileset,self.tile)
             for i in range(256):
-                pal=(bits>>4)&7 if bits&128 else int(self.defaults[i]);item=QListWidgetItem(QIcon(self.pixmap(self.graphic_image(i,pal),32)),f'{i:02X}');item.setData(Qt.ItemDataRole.UserRole,i);self.graphics.addItem(item)
+                pal=(bits>>4)&7 if bits&128 else int(self.defaults[i]);self.graphics.item(i).setIcon(QIcon(self.pixmap(self.graphic_image(i,pal),32)))
             self.references.clear()
             from .workspace_ui import version_name
+            self.context.blockSignals(True)
+            try:
+                for a in w.rom.areas:self.context.setItemText(a.id,f'{a.name} / {version_name(w,a.id)}')
+            finally:self.context.blockSignals(False)
             for a in w.rom.areas:
                 if w.rom.attributes[a.attributes_id].tileset==self.tileset:
                     item=QListWidgetItem(f'{a.name} / {version_name(w,a.id)}');item.setData(Qt.ItemDataRole.UserRole,a.id);self.references.addItem(item)
             self.load_controls()
-        finally:self.loading=False
+        finally:
+            for view,x,y in scrolls:
+                view.doItemsLayout();view.horizontalScrollBar().setValue(x);view.verticalScrollBar().setValue(y)
+            self.loading=False
     def load_controls(self):
         graphics,bits=composition(self.w.project,self.tileset,self.tile)
         self.heading.setText(f'Metatile ${self.tile:02X}');self.preview.setPixmap(self.pixmap(self.image(self.tile),160))
@@ -131,3 +144,5 @@ def open_metatiles(w):
     else:
         w.metatile_window.tile=w.brush;w.metatile_window.context.setCurrentIndex(w.area_id);w.metatile_window.refresh()
     w.metatile_window.show();w.metatile_window.raise_();w.metatile_window.activateWindow()
+    w.metatile_window.metatiles.doItemsLayout()
+    w.metatile_window.metatiles.scrollToItem(w.metatile_window.metatiles.item(w.metatile_window.tile))

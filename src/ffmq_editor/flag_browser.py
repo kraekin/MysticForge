@@ -9,7 +9,7 @@ from .flag_audit import FlagAudit
 class FlagBrowser(QDialog):
     def __init__(self,browser):
         super().__init__(browser);self.browser=browser;self.audit=FlagAudit(browser.window.rom,browser.window.project,browser.catalog)
-        self.setWindowTitle('Flag guide & evidence — read-only');self.resize(1240,790)
+        self.setWindowTitle('MysticForge — Flag guide & evidence (read-only)');self.resize(1240,790)
         box=QVBoxLayout(self)
         note=QLabel('Choose a flag to learn what it controls. Expand it for individual sources; select a source to read its evidence. This is a project snapshot, not the running game.');note.setWordWrap(True);box.addWidget(note)
         self.search=QLineEdit();self.search.setPlaceholderText('Search a flag, map, action, or associated dialogue…');box.addWidget(self.search)

@@ -11,7 +11,7 @@ from .database import CATEGORIES,fields,title,proposed_changes
 class GameDatabaseWindow(QMainWindow):
     def __init__(self,main_window):
         super().__init__(main_window);self.main_window=main_window;self.loading=False;self.controls=[];self.original={};self.snapshot_project=None;self.current_index=-1;self.current_category=''
-        self.setWindowTitle('Game database — Final Fantasy Mystic Quest');self.resize(1050,760)
+        self.setWindowTitle('MysticForge — Game database');self.resize(1050,760)
         root=QWidget();self.setCentralWidget(root);box=QVBoxLayout(root)
         top=QHBoxLayout();top.addWidget(QLabel('Database'));self.category=QComboBox();self.category.addItems(CATEGORIES);top.addWidget(self.category,1)
         undo=QPushButton('Undo');redo=QPushButton('Redo');top.addWidget(undo);top.addWidget(redo);undo.clicked.connect(main_window.stack.undo);redo.clicked.connect(main_window.stack.redo);box.addLayout(top)

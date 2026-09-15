@@ -24,7 +24,8 @@
 
    The event and script stuff is not complete, and is currently read only for reference. Editing will come in the future.
 
-   
+   Some stuff might be worded weird or named strangely or whatever due to AI, I do plan on going through soon and cleaning
+   up the wording, and menu items and other stuff soon. 
 
 """
 from pathlib import Path
@@ -55,6 +56,7 @@ from .world_editor import WorldEditor
 from .content_editor import ContentEditor
 from .world import points as route_points,available as route_available,position as node_position
 
+from .paths import user_directory, recovery_directory
 ROOT = Path(__file__).resolve().parents[2]
 
 class EditCommand(QUndoCommand):
@@ -255,6 +257,7 @@ class MainWindow(QMainWindow):
     def _menus(self):
         file = self.menuBar().addMenu("&File")
         self.action(file,"Open project…",self.open_project,QKeySequence.StandardKey.Open)
+        self.action(file,"Recover autosave…",self.recover_autosave)
         self.action(file,"Save project",self.save_project,QKeySequence.StandardKey.Save)
         self.action(file,"Save project as…",lambda:self.save_project(True),QKeySequence.StandardKey.SaveAs)
         file.addSeparator()
@@ -282,8 +285,10 @@ class MainWindow(QMainWindow):
         from .event_browser import show_browser
         self.action(events_menu,"Browse events & references…",lambda:show_browser(self),"Ctrl+Shift+E")
         help_menu = self.menuBar().addMenu("&Help")
-        self.action(help_menu,"About this milestone",lambda:QMessageBox.information(self,"FFMQ Map Editor",
-            "MysticForge 0.1-09-2026 \n\n Early Alpha. It is not complete yet. Use at your own risk. \n\n\n\n AI was used to assist in development. If you dont like that, then delete this program I guess? lol"))
+        from .diagnostics import show as show_diagnostics
+        self.action(help_menu,"Diagnostics…",lambda:show_diagnostics(self))
+        from .branding import about
+        self.action(help_menu,"About MysticForge…",lambda:about(self))
         bar = QToolBar("Tools");bar.setMovable(False);self.addToolBar(bar)
         bar.addAction(undo);bar.addAction(redo);bar.addSeparator()
         self.tool = QComboBox(self);self.tool.hide()
@@ -441,7 +446,7 @@ class MainWindow(QMainWindow):
         self.state_dock=self.dock("State & source",root,Qt.DockWidgetArea.BottomDockWidgetArea);self.state_dock.setMinimumHeight(150)
 
     def error(self,error):
-        QMessageBox.warning(self,"FFMQ Map Editor",str(error))
+        QMessageBox.warning(self,"MysticForge",str(error))
 
     def area_selected(self,current,previous=None):
         if not current:return
@@ -488,12 +493,12 @@ class MainWindow(QMainWindow):
     def save_stamp(self):
         try:
             stamp=self.selection.capture()
-            name,_=QFileDialog.getSaveFileName(self,"Save terrain stamp",str(ROOT/"My stamp.ffmqstamp.json"),"Terrain stamp (*.ffmqstamp.json)")
+            name,_=QFileDialog.getSaveFileName(self,"Save terrain stamp",str(user_directory()/"My stamp.ffmqstamp.json"),"Terrain stamp (*.ffmqstamp.json)")
             if name:stamp.save(name)
         except (OSError,ValueError) as error:self.error(error)
 
     def load_stamp(self):
-        name,_=QFileDialog.getOpenFileName(self,"Load terrain stamp",str(ROOT),"Terrain stamp (*.json)")
+        name,_=QFileDialog.getOpenFileName(self,"Load terrain stamp",str(user_directory()),"Terrain stamp (*.json)")
         if not name:return
         try:
             self.selection.stamp=Stamp.load(name);self.tool.setCurrentText("Stamp")
@@ -851,16 +856,21 @@ class MainWindow(QMainWindow):
 
     def update_title(self):
         name=self.project.path.name if self.project.path else "Untitled project"
-        self.setWindowTitle(f"{'* ' if not self.stack.isClean() else ''}{name} — FFMQ Map Editor")
+        self.setWindowTitle(f"{'* ' if not self.stack.isClean() else ''}{name} — MysticForge")
 
     def save_project(self,save_as=False):
         if not self.confirm_database_edits():return False
         self.end_stroke();path=self.project.path
         if save_as or not path:
-            name,_=QFileDialog.getSaveFileName(self,"Save project",str(ROOT/"My map.ffmq.json"),"FFMQ project (*.ffmq.json)")
+            name,_=QFileDialog.getSaveFileName(self,"Save project",str(user_directory()/"My map.ffmq.json"),"FFMQ project (*.ffmq.json)")
             if not name:return False
             path=Path(name)
-        try:self.project.save(path);self.stack.setClean();self.update_title();return True
+        try:
+            self.project.save(path);self.stack.setClean();self.update_title()
+            if getattr(self,'_recovery_project',None) is self.project:
+                try:self._recovery_path.unlink(missing_ok=True)
+                except OSError:pass
+            return True
         except (OSError,ValueError) as error:self.error(error);return False
 
     def confirm_database_edits(self):
@@ -874,27 +884,36 @@ class MainWindow(QMainWindow):
         if answer==QMessageBox.StandardButton.Save:return self.save_project()
         return answer==QMessageBox.StandardButton.Discard
 
-    def open_project(self):
+    def recover_autosave(self):
+        self.open_project(recovery=True)
+
+    def open_project(self,recovery=False):
         if not self.confirm_discard():return
-        name,_=QFileDialog.getOpenFileName(self,"Open project",str(ROOT),"FFMQ project (*.json)")
+        name,_=QFileDialog.getOpenFileName(self,"Recover autosave" if recovery else "Open project",str(recovery_directory() if recovery else user_directory()),"FFMQ project (*.json)")
         if not name:return
         try:
             project=Project.load(self.rom,name)
+            if recovery:project.path=None
             self.project=project;self.stack.clear();self.area_id=project.area_id
+            if recovery:self.stack.resetClean()
             self.areas.blockSignals(True);self.select_area(self.area_id);self.areas.blockSignals(False)
             self.preset.setCurrentText("Custom");self.refresh();self.fit_views()
         except (OSError,ValueError,TypeError) as error:self.error(error)
 
     def autosave(self):
         if self.stack.isClean() and not self.stroke:return
-        path=Path(str(self.project.path)+".autosave.json") if self.project.path else ROOT/"Untitled.ffmq.autosave.json"
+        if getattr(self,'_recovery_project',None) is not self.project:
+            from uuid import uuid4
+            self._recovery_project=self.project
+            self._recovery_path=recovery_directory()/f'{self.project.path.stem if self.project.path else "Untitled"}-{uuid4().hex[:12]}.autosave.json'
+        path=self._recovery_path
         try:self.project.save(path,autosave=True)
         except OSError as error:self.statusBar().showMessage(f"Autosave failed: {error}")
 
     def export_rom(self):
         if not self.confirm_database_edits():return
         self.end_stroke()
-        name,_=QFileDialog.getSaveFileName(self,"Export ROM copy",str(ROOT/"Mystic Quest edited.sfc"),"SNES ROM (*.sfc)")
+        name,_=QFileDialog.getSaveFileName(self,"Export ROM copy",str(user_directory()/"Mystic Quest edited.sfc"),"SNES ROM (*.sfc)")
         if not name:return
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
@@ -905,7 +924,7 @@ class MainWindow(QMainWindow):
 
     def export_png(self):
         self.play.setChecked(False)
-        name,_=QFileDialog.getSaveFileName(self,"Export current frame",str(ROOT/f"area-{self.area_id:02X}-frame-{self.frame.value()}.png"),"PNG (*.png)")
+        name,_=QFileDialog.getSaveFileName(self,"Export current frame",str(user_directory()/f"area-{self.area_id:02X}-frame-{self.frame.value()}.png"),"PNG (*.png)")
         if name and not qimage(self.render_area(self.area_id)[0]).save(name):self.error("Could not save PNG")
 
     def closeEvent(self,event):
@@ -928,6 +947,9 @@ QSplitter::handle { background: #303d4c; }
 """
 
 def configure_app(app):
+    from .branding import ICON
+    from . import __version__
+    app.setApplicationName("MysticForge");app.setOrganizationName("MysticForge");app.setApplicationVersion(__version__);app.setWindowIcon(QIcon(str(ICON)))
     # The offscreen Windows plugin may not enumerate system fonts. Load a real
     # local font so screenshots and the live application use the same face.
     font_path=Path("C:/Windows/Fonts/segoeui.ttf")
@@ -938,16 +960,15 @@ def configure_app(app):
     app.setStyle("Fusion");app.setStyleSheet(STYLE)
 
 def main():
-    app=QApplication(sys.argv);configure_app(app)
-    path=Path(sys.argv[1]) if len(sys.argv)>1 else ROOT/"Final Fantasy - Mystic Quest (USA).sfc"
-    if not path.is_file():
-        name,_=QFileDialog.getOpenFileName(None,"Select original unheadered ROM",str(ROOT),"SNES ROM (*.sfc)")
-        if not name:return
-        path=Path(name)
-    try:window=MainWindow(Rom(path))
-    except Exception as error:
-        QMessageBox.critical(None,"Could not open ROM",str(error));return
+    app=QApplication(sys.argv);app.setApplicationName("MysticForge");app.setOrganizationName("MysticForge");configure_app(app)
+    from .diagnostics import install
+    install()
+    from .startup import WelcomeWindow
+    window=WelcomeWindow(sys.argv[1] if len(sys.argv)>1 else None)
     window.show()
+    # Let Qt display the application before presenting its parented file dialog.
+    QTimer.singleShot(100,window.start)
     app.exec()
 
 if __name__=="__main__":main()
+
