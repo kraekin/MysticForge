@@ -1,5 +1,7 @@
-<img width="908" height="703" alt="python3 13_AG2UvXltb1" src="https://github.com/user-attachments/assets/506db728-769a-4cbb-b1b6-ee6ede5d339c" />
 # MysticForge 0.2-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+
+
+<img width="908" height="703" alt="python3 13_AG2UvXltb1" src="https://github.com/user-attachments/assets/506db728-769a-4cbb-b1b6-ee6ede5d339c" />
 
 updated to version 0.2 but have not added a nuitka build for it yet, just download and run the python script, or wait and ill upload the release soon
 
