@@ -37,15 +37,27 @@ class Renderer:
                 palettes[group*32+tile] = (packed[tile//2] >> (4*(tile&1))) & 7
         return tiles, palettes
 
+    def project_graphics(self, project, attributes_id):
+        tiles,palettes=self.graphics(attributes_id)
+        changed={resource for kind,resource,_ in project.edits if kind=='terrain_graphic'}
+        if not changed:return tiles,palettes
+        tiles=tiles.copy();attr=self.rom.attributes[attributes_id]
+        for slot,selector in enumerate(attr.raw[2:10]):
+            if selector&128:continue
+            for t in range(32):
+                resource=selector*32+t
+                if resource in changed:tiles[slot*32+t]=decode_3bpp(project.fixed('terrain_graphic',resource))
+        return tiles,palettes
+
     def metatiles(self, project, area_id, flags=None, frame=0):
         area = self.rom.areas[area_id]
         attr = self.rom.attributes[area.attributes_id]
         state = project.state(area_id, flags)
-        tiles, tile_palettes = self.graphics(area.attributes_id)
+        tiles, tile_palettes = self.project_graphics(project,area.attributes_id)
         tiles=self.animation.graphics(area_id,tiles,frame)
-        graphics = np.frombuffer(project.fixed("metatile_graphics",attr.tileset),dtype=np.uint8).reshape(128,4).copy()
-        bits = np.frombuffer(project.fixed("metatile_attributes",attr.tileset),dtype=np.uint8).copy()
-        properties = np.frombuffer(project.fixed("properties",attr.tileset),dtype=np.uint8).reshape(128,2).copy()
+        graphics = np.frombuffer(project.fixed("metatile_graphics",project.tileset(area_id)),dtype=np.uint8).reshape(128,4).copy()
+        bits = np.frombuffer(project.fixed("metatile_attributes",project.tileset(area_id)),dtype=np.uint8).copy()
+        properties = np.frombuffer(project.fixed("properties",project.tileset(area_id)),dtype=np.uint8).reshape(128,2).copy()
         for destination, source in state.remaps:
             graphics[destination] = graphics[source]
             bits[destination] = bits[source]
@@ -159,9 +171,10 @@ class Renderer:
         rgba[rgba[:,:,3]==0,:3] = color_rgb(project.palette(state.palette)[0])
         rgba[:,:,3] = 255
         if sprites:
+            from .landmarks import records as landmark_records
             foreground=bg[:,:,3]!=0 if bg is not None and blend in (2,4,5,6) else None
             self.sprites.draw(rgba,area_id,flags,show_hidden,foreground,2 if blend in (2,6) else 3,
-                              frame,self.animation.palette(area_id,frame,True),project.objects(area_id))
+                              frame,self.animation.palette(area_id,frame,True),project.objects(area_id),landmark_records(project))
         return rgba, atlas, properties, state
 
 def qimage(array):

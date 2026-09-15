@@ -1,6 +1,4 @@
-"""Layout preview of game's dialogue, read only right now, but a text editor will be added in the future that will show this as well so you cam
-   see how it will look in the game.
-"""
+"""Illustrative game-font dialogue preview shared by inspection and editing."""
 from pathlib import Path
 import re
 from PySide6.QtCore import Qt

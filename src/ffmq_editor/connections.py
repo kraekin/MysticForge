@@ -70,11 +70,17 @@ class Connections:
             return self.destination(target_action,target_value,flags)
         if action not in self.TABLES:return None
         base,count,size=self.TABLES[action]
+        if self.project and action in (0,4) and value>=217 and (value-217 in self.project.content['entrances'] or value-217 in {c['entry'] for c in self.project.newmaps.values()}):
+            from .expanded_content import destination_id
+            area,y,x=self.project.fixed('destination',destination_id(value-217))
+            if area>=len(self.rom.areas):return None
+            attrs=self.rom.attributes[self.rom.areas[area].attributes_id]
+            return (area,x&63,y,x>>6) if y<attrs.height and (x&63)<attrs.width else None
         if not 0<=value<count:return None
         offset=pc(base)+value*size
         raw=(self.project.fixed("destination",offset) if self.project else read(self.rom.data,offset,size))[-3:]
         area,y,x=raw
-        if area>=108:return None
+        if area>=len(self.rom.areas):return None
         attrs=self.rom.attributes[self.rom.areas[area].attributes_id]
         if (x&63)>=attrs.width or y>=attrs.height:return None
         return area,x&63,y,(x>>6)&3
@@ -83,9 +89,9 @@ class Connections:
         area=self.rom.areas[area_id]
         if area.layout_id==0:
             result=[]
-            for node in range(0x16,0x38):
+            for node in (*range(0x16,0x38),*(sorted(self.project.world["nodes"]) if self.project else ())):
                 x,y=self.project.fixed("world_node",node) if self.project else read(self.rom.data,pc(0x07F7C3)+node*2,2)
-                source=pc(0x07EFCB)+(node-0x16)*2
+                source=pc(0x07EFCB)+(node-0x16)*2 if node<57 else 0x310000+node
                 value,action=self.project.fixed("world_action",node) if self.project else read(self.rom.data,source,2)
                 label=f"World node ${node:02X}"
                 if (action,value)==(8,0x2e):label+=" · Level Forest entry script $2E · flag $13 "+("set" if 0x13 in state.flags else "clear")
@@ -95,10 +101,10 @@ class Connections:
                     if value==8 and 2 not in state.flags:label+=" · item/dialogue context required"
                 result.append(Connection(x,y,action,value,self.destination(action,value,state.flags),source,label))
             return tuple(result)
-        attrs=self.rom.attributes[area.attributes_id];records=self.records[area_id];result=[]
+        attrs=self.rom.attributes[area.attributes_id];records=self.records[area_id] if area_id<108 else {};result=[]
         if self.project:
             records={}
-            for _,offset in self.records[area_id].values():
+            for _,offset in (self.records[area_id].values() if area_id<108 else ()):
                 rx,ry,rv=self.project.fixed("coordinate",offset)
                 records.setdefault((rx,ry),(rv,offset))
         for index,cell in enumerate(state.cells[:attrs.width*attrs.height]):
@@ -119,6 +125,12 @@ class Connections:
                     if (rx,ry)==(x,y):value,source=rv,cursor;break
                     if ry&128:break
                     cursor+=3
+            if self.project and action!=3:
+                from .expanded_content import coordinate_id
+                for i,e in self.project.content['entrances'].items():
+                    if e['area']!=area_id:continue
+                    rx,ry,rv=self.project.fixed('coordinate',coordinate_id(i))
+                    if (rx,ry)==(x,y):action,value,source,label=0,rv,coordinate_id(i),'New entrance · private coordinate';break
             result.append(Connection(x,y,action,value,self.destination(action,value),source,label))
         return tuple(result)
 

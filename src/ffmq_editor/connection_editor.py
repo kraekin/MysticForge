@@ -19,6 +19,8 @@ class ConnectionPanel(QWidget):
         self.move_note=QLabel("Drag an entrance marker to its new tile, or use Move and click. The doorway tile swaps with the target tile. Adjust the house artwork separately; check its return arrival too.");self.move_note.setWordWrap(True);box.addWidget(self.move_note)
         self.move_feedback=QLabel();self.move_feedback.setWordWrap(True);box.addWidget(self.move_feedback)
         self.table.itemSelectionChanged.connect(self.locate)
+        from .expanded_content_editor import new_entrance
+        self.new_button=QPushButton('Add entrance…');self.new_button.clicked.connect(lambda:new_entrance(self.window));box.addWidget(self.new_button)
         self.table.cellDoubleClicked.connect(lambda *_:self.follow())
         button=QPushButton("Go to selected destination");button.clicked.connect(self.follow);box.addWidget(button)
         inspect=QPushButton("Open full inspector…");inspect.clicked.connect(self.inspect);box.addWidget(inspect)
@@ -39,6 +41,7 @@ class ConnectionPanel(QWidget):
     def update_entries(self,entries):
         if entries==self.entries and self.area==self.window.area_id:return
         self.move_button.setChecked(False)
+        self.fields["Area"].setMaximum(len(self.window.rom.areas)-1)
         self.entries=entries;self.area=self.window.area_id
         row_before=self.table.currentRow()
         self.table.blockSignals(True);self.table.setRowCount(len(entries))
@@ -47,7 +50,7 @@ class ConnectionPanel(QWidget):
                 area,x,y,facing=entry.target
                 target=f"${area:02X} {self.window.rom.areas[area].name} · ({x},{y})"
             else:target="Runtime/script destination" if entry.action==3 else "Unresolved"
-            detail=entry.label+(f" · ROM ${entry.source:06X}" if entry.source is not None else "")
+            detail=entry.label+((" · expanded coordinate" if entry.source>=0x200000 else f" · ROM ${entry.source:06X}") if entry.source is not None else "")
             for col,text in enumerate((f"E{row:X} · {entry.x},{entry.y}",f"${entry.action:02X} / ${entry.value:02X}",target,detail)):
                 item=QTableWidgetItem(text);item.setToolTip(text);self.table.setItem(row,col,item)
         self.table.resizeColumnsToContents();self.table.blockSignals(False)
@@ -72,22 +75,25 @@ class ConnectionPanel(QWidget):
     def destination_key(self,entry):
         if entry is None or entry.action not in self.window.connections.TABLES:return None
         base,count,size=self.window.connections.TABLES[entry.action]
+        if entry.action in (0,4) and entry.value>=217 and entry.value-217 in (set(self.window.project.content['entrances'])|{c['entry'] for c in self.window.project.newmaps.values()}):
+            from .expanded_content import destination_id
+            return destination_id(entry.value-217)
         return pc(base)+entry.value*size if 0<=entry.value<count else None
 
     def update_form(self):
         entry=self.entry();self.selected_key=self.destination_key(entry)
-        self.move_button.setEnabled(bool(entry and not entry.label.startswith("World node") and (entry.action==3 or entry.source in self.window.rom.coordinate_offsets)))
+        self.move_button.setEnabled(bool(entry and not entry.label.startswith("World node") and (entry.action==3 or entry.source in self.window.project.coordinate_offsets)))
         valid=self.selected_key is not None
         self.apply.setEnabled(valid);self.incoming.setEnabled(valid)
         for spin in self.fields.values():spin.setEnabled(valid)
         if valid:
             raw=self.window.project.fixed("destination",self.selected_key);area,y,x=raw[-3:]
             for name,value in (("Area",area),("X",x&63),("Y",y),("Facing",x>>6)):self.fields[name].setValue(value)
-            self.scope.setText(f"Shared destination at ROM ${self.selected_key:06X}. All exits using this record change together. Use Find references to list current-preview uses."+(" Long-form runtime byte is preserved." if len(raw)==4 else ""))
+            self.scope.setText((f"Expanded destination {entry.value:02X}. " if self.selected_key>=0x210000 else f"Shared destination at ROM ${self.selected_key:06X}. ")+"All exits using this record change together. Use Find references to list current-preview uses."+(" Long-form runtime byte is preserved." if len(raw)==4 else ""))
         elif entry and entry.action==8 and entry.target:
             self.scope.setText("Scripted entry: the destination shown follows the current preview flags. Script editing is not enabled; this is not a direct destination record.")
         else:self.scope.setText("Runtime/script return; no static destination is editable.")
-        field_source=bool(entry and entry.source in self.window.rom.coordinate_offsets and entry.action in self.window.connections.TABLES)
+        field_source=bool(entry and entry.source in self.window.project.coordinate_offsets and entry.action in self.window.connections.TABLES)
         world_source=bool(entry and entry.label.startswith("World node") and valid)
         self.source_apply.setEnabled(field_source or world_source)
         for name,spin in self.source_fields.items():spin.setEnabled(field_source or (world_source and name=="Destination ID"))
@@ -124,11 +130,12 @@ class ConnectionPanel(QWidget):
         entry=self.entry()
         if not entry:return
         w=self.window;value=self.source_fields["Destination ID"].value()
-        if entry.action not in w.connections.TABLES or value>=w.connections.TABLES[entry.action][1]:w.error("Destination ID is outside this action's table");return
+        extra=entry.action in (0,4) and value>=217 and value-217 in (set(w.project.content['entrances'])|{c['entry'] for c in w.project.newmaps.values()})
+        if entry.action not in w.connections.TABLES or (value>=w.connections.TABLES[entry.action][1] and not extra):w.error("Destination ID is outside this action's table");return
         if entry.label.startswith("World node"):
-            node=(entry.source-pc(0x07EFCB))//2+0x16
+            node=entry.source-0x310000 if entry.source>=0x310000 else (entry.source-pc(0x07EFCB))//2+0x16
             w.commit_changes(changes(w.project,"world_action",node,bytes((value,entry.action))),"Change overworld location link");return
-        if entry.source not in w.rom.coordinate_offsets:return
+        if entry.source not in w.project.coordinate_offsets:return
         x=self.source_fields["Source X"].value();y=self.source_fields["Source Y"].value()
         attrs=w.rom.attributes[w.rom.areas[w.area_id].attributes_id]
         if x>=attrs.width or y>=attrs.height:w.error("Source coordinates exceed this map");return
@@ -164,7 +171,8 @@ def entrance_move_changes(w,entry,x,y):
     if area.layout_id==0:raise ValueError('Move overworld nodes with the Routes editor.')
     if not (0<=x<attrs.width and 0<=y<attrs.height):raise ValueError('New entrance is outside this map.')
     if (x,y)==(entry.x,entry.y):return {}
-    if w.target.currentData()!=('layout',area.layout_id):raise ValueError('Choose Base terrain before moving an entrance.')
+    target=w.target.currentData()
+    if not isinstance(target,(tuple,list)) or tuple(target)!=('layout',w.project.layout_id(w.area_id)):raise ValueError('Choose Base terrain before moving an entrance.')
     points=((entry.x,entry.y),(x,y))
     for px,py in points:
         if w.terrain_source(px,py)!=py*attrs.width+px:raise ValueError('This position uses shifted terrain. Entrance movement here needs separate layer handling.')
@@ -174,18 +182,23 @@ def entrance_move_changes(w,entry,x,y):
                 if patch.x<=px<patch.x+patch.width and patch.y<=py<patch.y+patch.height:raise ValueError('An active state change covers this position. Preview a state without that replacement before moving the base entrance.')
     _,props,state=w.renderer.metatiles(w.project,w.area_id)
     target_cell=state.cells[y*attrs.width+x]
-    if int(props[target_cell&127,1])&0xE0==0x80:raise ValueError('The target already has a transition trigger. Choose an ordinary terrain tile.')
-    if entry.action!=3 and entry.source not in w.rom.coordinate_offsets:raise ValueError('This entrance has no editable coordinate record.')
+    if int(props[target_cell&127,1])&0xE0==0x80:raise ValueError('The target is already a door/transition trigger. Paint an ordinary ground tile at that spot first, then drag the entrance there; the original working doorway will move with it.')
+    if entry.action!=3 and entry.source not in w.project.coordinate_offsets:raise ValueError('This entrance has no editable coordinate record.')
     # Include inactive coordinate records and fallback records, not only visible triggers.
     cursor=pc(0x05F9F8)+int.from_bytes(w.rom.data[pc(0x05F920)+w.area_id*2:pc(0x05F920)+w.area_id*2+2],'little')
-    while cursor+3<=pc(0x05FFFF)+1:
-        raw=w.project.fixed('coordinate',cursor) if cursor in w.rom.coordinate_offsets else w.rom.data[cursor:cursor+3]
+    while area.id<108 and cursor+3<=pc(0x05FFFF)+1:
+        raw=w.project.fixed('coordinate',cursor) if cursor in w.project.coordinate_offsets else w.rom.data[cursor:cursor+3]
         rx,ry,_=raw
         if ry&128:break
         if cursor!=entry.source and (rx,ry)==(x,y):raise ValueError('Another coordinate record already uses this tile, including possible inactive entrances.')
         cursor+=3
-    raw=bytearray(w.project.resource('layout',area.layout_id));a=entry.y*attrs.width+entry.x;b=y*attrs.width+x
+    layout_id=w.project.layout_id(w.area_id)
+    raw=bytearray(w.project.resource('layout',layout_id));a=entry.y*attrs.width+entry.x;b=y*attrs.width+x
+    from .expanded_content import coordinate_id
+    for i,e in w.project.content['entrances'].items():
+        source=coordinate_id(i)
+        if e['area']==w.area_id and source!=entry.source and tuple(w.project.fixed('coordinate',source)[:2])==(x,y):raise ValueError('Another new entrance occupies this tile.')
     raw[a],raw[b]=raw[b],raw[a]
-    edits=changes(w.project,'layout',area.layout_id,raw)
+    edits=changes(w.project,'layout',layout_id,raw)
     if entry.action!=3:edits.update(changes(w.project,'coordinate',entry.source,bytes((x,y,entry.value))))
     return edits

@@ -46,9 +46,15 @@ class LayoutPlan:
     pointers:dict
     sizes:dict
     pools:tuple
+    table:int=POINTERS
+    allocated:int=0
 
 def plan_layouts(project,strict=True):
     rom=project.rom;verify_pools(rom)
+    project.validate_expansion()
+    if project.expanded:
+        from .expansion import plan_expanded
+        return plan_expanded(project)
     changed={resource for kind,resource,_ in project.edits if kind=='layout'}
     sizes={};payloads={};budgets=[];writes=[];pointers={i:m.start for i,m in enumerate(rom.layouts)}
     for start,end,ids in POOLS:

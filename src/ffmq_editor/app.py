@@ -1,5 +1,5 @@
 """
-   MysticForge 0.1-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+   MysticForge 0.2-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
    I have tested everything I could so far, but have not gone through the game completely to verify that everything works as intended. 
    As such, there may be bugs, issues, or game breaking shit that happens. 
 
@@ -97,17 +97,21 @@ class Canvas(QGraphicsView):
         self.selection_rect=None
         self.connections=();self.arrival=None
         self.traversal_overlay=0
-        self.world_paths=();self.world_nodes=()
+        self.world_paths=();self.world_nodes=();self.art_preview=None;self.object_preview=None
         self._pan_position = None
         self.pan_mode = not editable
 
-    def set_image(self, rgba):
-        self.picture.setPixmap(QPixmap.fromImage(qimage(rgba)))
-        self.setSceneRect(QRectF(0,0,rgba.shape[1],rgba.shape[0]))
+    def set_image(self, rgba, section=None):
+        bounds=section or QRectF(0,0,rgba.shape[1],rgba.shape[0])
+        x,y,width,height=map(int,(bounds.x(),bounds.y(),bounds.width(),bounds.height()))
+        self.picture.setPixmap(QPixmap.fromImage(qimage(rgba[y:y+height,x:x+width].copy())))
+        self.picture.setPos(x,y)
+        self.setSceneRect(bounds)
         self.viewport().update()
 
     def coords(self,event):
         point = self.mapToScene(event.position().toPoint())
+        if not self.sceneRect().contains(point):return -1,-1
         return int(point.x()//16), int(point.y()//16)
 
     def mousePressEvent(self,event):
@@ -144,6 +148,12 @@ class Canvas(QGraphicsView):
             self.strokeFinished.emit()
         super().mouseReleaseEvent(event)
 
+    def leaveEvent(self,event):
+        self.art_preview=None
+        self.object_preview=None
+        self.viewport().update()
+        super().leaveEvent(event)
+
     def wheelEvent(self,event):
         factor = 1.25 if event.angleDelta().y()>0 else 0.8
         current = self.transform().m11()
@@ -152,13 +162,18 @@ class Canvas(QGraphicsView):
         event.accept()
 
     def drawForeground(self,painter,rect):
-        pen = QPen(QColor(220,230,240,50)); pen.setCosmetic(True)
+        painter.save();painter.setClipRect(self.sceneRect())
+        if self.object_preview:
+            x,y,pix=self.object_preview;painter.save();painter.setOpacity(0.7);painter.drawPixmap((x-1)*16,(y-1)*16,pix);painter.restore()
+        if self.art_preview:
+            x,y,pix=self.art_preview;painter.save();painter.setOpacity(0.7);painter.drawPixmap(x*16,y*16,16,16,pix);painter.restore()
+        pen = QPen(QColor(0,0,0)); pen.setCosmetic(True)
         painter.setPen(pen)
         if self.grid:
-            for x in range(max(0,int(rect.left())//16)*16,int(min(rect.right(),self.sceneRect().width()))+1,16):
+            for x in range(max(0,int(rect.left())//16)*16,int(min(rect.right(),self.sceneRect().right()))+1,16):
                 painter.drawLine(x,0,x,int(self.sceneRect().height()))
             for y in range(max(0,int(rect.top())//16)*16,int(min(rect.bottom(),self.sceneRect().height()))+1,16):
-                painter.drawLine(0,y,int(self.sceneRect().width()),y)
+                painter.drawLine(0,y,int(self.sceneRect().right()),y)
         if self.show_properties and self.properties is not None:
             for y in range(max(0,int(rect.top())//16),min(int(rect.bottom())//16+1,int(self.sceneRect().height())//16)):
                 for x in range(max(0,int(rect.left())//16),min(int(rect.right())//16+1,self.map_width)):
@@ -202,6 +217,8 @@ class Canvas(QGraphicsView):
         painter.setPen(QColor("#ffde86"))
         for node,x,y in self.world_nodes:
             painter.drawEllipse(x*16+3,y*16+3,10,10);painter.drawText(x*16+9,y*16+4,f"{node:02X}")
+
+        painter.restore()
 
 class MainWindow(QMainWindow):
     def __init__(self,rom):
@@ -256,12 +273,17 @@ class MainWindow(QMainWindow):
 
     def _menus(self):
         file = self.menuBar().addMenu("&File")
+        self.action(file,"New project",self.new_project,QKeySequence.StandardKey.New)
         self.action(file,"Open project…",self.open_project,QKeySequence.StandardKey.Open)
         self.action(file,"Recover autosave…",self.recover_autosave)
         self.action(file,"Save project",self.save_project,QKeySequence.StandardKey.Save)
         self.action(file,"Save project as…",lambda:self.save_project(True),QKeySequence.StandardKey.SaveAs)
         file.addSeparator()
         self.action(file,"Export ROM copy…",self.export_rom,"Ctrl+E")
+        from .patch_editor import show_patch_export
+        self.action(file,"Export patch…",lambda:show_patch_export(self))
+        from .expansion_editor import show_expansion
+        self.action(file,"ROM expansion…",lambda:show_expansion(self))
         self.action(file,"Export current view as PNG…",self.export_png)
         database_menu=self.menuBar().addMenu("&Database")
         from .database_editor import open_database
@@ -292,7 +314,7 @@ class MainWindow(QMainWindow):
         bar = QToolBar("Tools");bar.setMovable(False);self.addToolBar(bar)
         bar.addAction(undo);bar.addAction(redo);bar.addSeparator()
         self.tool = QComboBox(self);self.tool.hide()
-        self.tool.addItems(["Pencil","Fill","Eyedropper","Pan","Objects","Select","Stamp","Move selection","Tile behavior","Overworld routes","Rewards & encounters","Entrances"])
+        self.tool.addItems(["Pencil","Fill","Eyedropper","Pan","Objects","Select","Stamp","Move selection","Tile behavior","Overworld routes","Rewards & encounters","Entrances","Artwork"])
         from .workspace_ui import add_tool_buttons
         add_tool_buttons(self,bar)
         self.tool.currentTextChanged.connect(lambda text:setattr(self.canvas,"pan_mode",text=="Pan"))
@@ -335,22 +357,37 @@ class MainWindow(QMainWindow):
     def _workspace(self):
         root = QWidget();layout = QVBoxLayout(root);layout.setContentsMargins(12,10,12,8)
         self.heading = QLabel();self.heading.setObjectName("heading");layout.addWidget(self.heading)
-        version_row=QHBoxLayout();self.version_label=QLabel('Map version');version_row.addWidget(self.version_label)
-        self.version=QComboBox();version_row.addWidget(self.version,1)
+        version_row=QHBoxLayout();self.version_label=QLabel('Map setup');version_row.addWidget(self.version_label)
+        self.version=QComboBox(self);self.version.hide()
+        from .setup_selector import SetupButtons,show_details,focus_objects
+        self.setup_buttons=SetupButtons(self);version_row.addWidget(self.setup_buttons,1)
         self.version.currentIndexChanged.connect(self.version_selected)
         self.map_details_button=QPushButton('Map details…');self.map_details_button.clicked.connect(lambda:self.show_map_details());version_row.addWidget(self.map_details_button);layout.addLayout(version_row)
         self.version_hint=QLabel();self.version_hint.setWordWrap(True);layout.addWidget(self.version_hint)
-        row = QHBoxLayout();row.addWidget(QLabel("Preview state"))
+        setup_tools=QHBoxLayout();layout.addLayout(setup_tools)
+        setup_details=QPushButton("Entrances, differences & setup name…");setup_details.clicked.connect(lambda:show_details(self));setup_tools.addWidget(setup_details)
+        focus=QPushButton("Focus on setup objects");focus.clicked.connect(lambda:focus_objects(self));setup_tools.addWidget(focus)
+        setup_tools.addStretch()
+        row = QHBoxLayout();row.addWidget(QLabel("Story preview"))
         self.preset = QComboBox();self.preset.setToolTip("Changes the visual preview flags only. This is separate from selecting a map configuration and does not change ROM story progression.");self.preset.addItems(["Initial","Earth restored","Water restored","Fire restored","All restored","Custom"])
         row.addWidget(self.preset);self.preset.currentTextChanged.connect(self.preset_changed)
         self.compare = QCheckBox("Compare with initial state");row.addWidget(self.compare);self.compare.toggled.connect(self.compare_changed)
         row.addStretch();layout.addLayout(row)
-        row = QHBoxLayout();row.addWidget(QLabel("Edit terrain"));self.target = QComboBox();row.addWidget(self.target,1)
-        self.target.currentIndexChanged.connect(lambda:self.refresh_map());layout.addLayout(row)
+        self.full_aquaria=QCheckBox("Show full Aquaria layout")
+        self.full_aquaria.setToolTip("Show both stored town sections. Editing coordinates remain the original ROM coordinates.")
+        self.full_aquaria.toggled.connect(lambda _: (self.refresh_map(),self.fit_views()))
+        layout.addWidget(self.full_aquaria)
+        self.terrain_choices=QWidget();row=QHBoxLayout(self.terrain_choices);row.setContentsMargins(0,0,0,0)
+        row.addWidget(QLabel("Edit terrain"));self.target=QComboBox(self);self.target.hide()
+        from .setup_selector import TerrainButtons
+        self.terrain_buttons=TerrainButtons(self);row.addWidget(self.terrain_buttons,1)
+        self.target.currentIndexChanged.connect(lambda:self.refresh_map());layout.addWidget(self.terrain_choices)
         self.shared = QLabel();self.shared.setWordWrap(True);layout.addWidget(self.shared)
         self.shared_links=QPushButton("Shared terrain uses…");self.shared_links.setFlat(True);layout.addWidget(self.shared_links)
         from .terrain_links import show_terrain_uses
         self.shared_links.clicked.connect(lambda:show_terrain_uses(self))
+        from .expansion_editor import copy_terrain
+        self.copy_terrain_button=QPushButton('Make terrain independent…');self.copy_terrain_button.clicked.connect(lambda:copy_terrain(self));layout.addWidget(self.copy_terrain_button)
         self.storage_budget=QPushButton('Map storage · calculating…');self.storage_budget.setFlat(True);self.storage_budget.clicked.connect(self.show_storage_details);layout.addWidget(self.storage_budget)
         self.storage_budget.setToolTip('Compression depends on tile patterns, not walkable area. Overflowing maps are automatically repacked with neighboring layouts inside verified storage. The shared budget includes optimal recompression of all layouts in that pool. No ROM expansion or unverified free space is used.')
         self.budget_timer=QTimer(self);self.budget_timer.setSingleShot(True);self.budget_timer.setInterval(250);self.budget_timer.timeout.connect(self.update_storage_budget)
@@ -372,10 +409,11 @@ class MainWindow(QMainWindow):
     def _sidebar(self):
         root=QWidget();box=QVBoxLayout(root)
         self.search=QLineEdit();self.search.setPlaceholderText("Find map or area hex ID…");box.addWidget(self.search)
-        hint=QLabel("Choose a map. Its versions appear above the canvas.");hint.setWordWrap(True);box.addWidget(hint)
+        hint=QLabel("Choose a map, then a named setup above the canvas.");hint.setWordWrap(True);box.addWidget(hint)
         self.areas=QTreeWidget();self.areas.setHeaderHidden(True);self.areas.setRootIsDecorated(False);box.addWidget(self.areas)
         self.area_items={};self.map_items={};self.last_area={}
-        for a in self.rom.areas:
+        from .workspace_ui import ordered_map_areas
+        for a in ordered_map_areas(self.rom):
             if a.layout_id not in self.map_items:
                 item=QTreeWidgetItem([a.name]);item.setData(0,Qt.ItemDataRole.UserRole,a.id)
                 self.areas.addTopLevelItem(item);self.map_items[a.layout_id]=item;self.last_area[a.layout_id]=a.id
@@ -383,6 +421,8 @@ class MainWindow(QMainWindow):
         self.areas.setCurrentItem(self.areas.topLevelItem(0))
         self.areas.currentItemChanged.connect(self.area_selected)
         self.search.textChanged.connect(self.filter_areas)
+        from .new_map_editor import open_new_map
+        add=QPushButton('New map…');add.clicked.connect(lambda:open_new_map(self));box.addWidget(add)
         self.area_dock=self.dock('Maps',root,Qt.DockWidgetArea.LeftDockWidgetArea)
 
     def filter_areas(self,text):
@@ -457,6 +497,13 @@ class MainWindow(QMainWindow):
         self.refresh();self.fit_views()
 
     def tool_changed(self,name):
+        self.canvas.art_preview=None
+        self.canvas.object_preview=None
+        if name=='Objects' and self.rom.areas[self.area_id].layout_id and not self.project.objects(self.area_id):self.object_editor.mode.setCurrentIndex(1)
+        if name=="Artwork":
+            if self.rom.areas[self.area_id].layout_id!=0:self.select_area(0)
+            from .landmark_editor import open_landmarks
+            open_landmarks(self)
         if name!="Entrances" and hasattr(self,"connection_panel"):self.connection_panel.move_button.setChecked(False)
         if name=="Overworld routes":
             if self.rom.areas[self.area_id].layout_id!=0:self.select_area(0)
@@ -466,7 +513,7 @@ class MainWindow(QMainWindow):
         self.end_stroke()
         if name not in ("Select","Move selection","Stamp"):self.selection.reset()
         if hasattr(self,'panel_stack'):
-            panel={'Objects':'Objects','Entrances':'Entrances','Overworld routes':'Routes','Tile behavior':'Tile behavior','Rewards & encounters':'Rewards & encounters'}.get(name,'Tiles')
+            panel={'Artwork':'Artwork','Objects':'Objects','Entrances':'Entrances','Overworld routes':'Routes','Tile behavior':'Tile behavior','Rewards & encounters':'Rewards & encounters'}.get(name,'Tiles')
             self.show_panel(panel)
         if name=='Entrances':self.show_connections.setChecked(True)
         if name=="Objects":self.object_dock.show();self.object_dock.raise_()
@@ -481,6 +528,12 @@ class MainWindow(QMainWindow):
         if changes:self.stack.push(EditCommand(self,changes,label))
 
     def deselect(self):
+        self.canvas.object_preview=None
+        if hasattr(self,'object_editor') and self.tool.currentText()=='Objects':self.object_editor.mode.setCurrentIndex(0)
+        self.canvas.art_preview=None
+        if hasattr(self,"landmark_editor"):
+            self.landmark_editor.drag_index=None
+            if self.tool.currentText()=="Artwork":self.landmark_editor.mode.setCurrentIndex(1)
         self.selection.reset();self.refresh_map()
 
     def copy_selection(self,cut=False):
@@ -540,8 +593,20 @@ class MainWindow(QMainWindow):
         for canvas in (self.canvas,self.before):canvas.fitInView(canvas.sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
 
     def refresh(self):
+        if self.rom is not self.project.rom:
+            self.rom=self.project.rom;self.renderer=Renderer(self.rom);self.connections=Connections(self.rom)
+            self.areas.blockSignals(True);self.areas.clear();self.area_items={};self.map_items={};self.last_area={}
+            from .workspace_ui import ordered_map_areas
+            for a in ordered_map_areas(self.rom):
+                if a.layout_id not in self.map_items:
+                    item=QTreeWidgetItem([a.name]);item.setData(0,Qt.ItemDataRole.UserRole,a.id)
+                    self.areas.addTopLevelItem(item);self.map_items[a.layout_id]=item;self.last_area[a.layout_id]=a.id
+                self.area_items[a.id]=self.map_items[a.layout_id]
+            if self.area_id>=len(self.rom.areas):self.area_id=0;self.project.area_id=0
+            self.areas.setCurrentItem(self.area_items[self.area_id]);self.areas.blockSignals(False)
         if hasattr(self,"database_window"):self.database_window.project_changed()
         if hasattr(self,"metatile_window"):self.metatile_window.refresh()
+        if hasattr(self,"pixel_window"):self.pixel_window.refresh()
         if self._refreshing:return
         self._refreshing=True
         try:
@@ -552,12 +617,20 @@ class MainWindow(QMainWindow):
             self.version.blockSignals(True);self.version.clear()
             for a in members:self.version.addItem(version_name(self,a),a)
             self.version.setCurrentIndex(members.index(self.area_id));self.version.blockSignals(False)
-            self.version.setVisible(len(members)>1);self.version_label.setVisible(len(members)>1)
-            self.version_hint.setText('Versions share terrain but can use different objects, palettes and map settings. Story timing is not known for every version.' if len(members)>1 else '')
-            self.version_hint.setVisible(len(members)>1)
+            self.version.hide();self.version_label.setVisible(len(members)>1)
+            self.setup_buttons.update_setups(members);self.setup_buttons.setVisible(len(members)>1)
+            from .map_setups import info
+            setup=info(self.project,self.area_id)
+            shares=[i for i in members if i!=self.area_id and self.project.layout_id(i)==self.project.layout_id(self.area_id)]
+            self.version_hint.setText(setup['meaning']+f" {len(self.project.objects(self.area_id))} object records. "+(f"Terrain shared with {len(shares)} other setup(s)." if shares else "No other setup shares this base terrain."))
+            self.version_hint.setVisible(True)
             for flag,check in self.flag_checks.items():check.setChecked(flag in self.project.flags)
             selected=self.target.currentData()
-            self.target.clear();self.target.addItem("Base terrain",("layout",area.layout_id))
+            layout_id=self.project.layout_id(self.area_id)
+            self.target.clear();self.target.addItem("Independent base terrain" if layout_id>=44 else "Base terrain",("layout",layout_id))
+            self.copy_terrain_button.setEnabled(layout_id<44)
+            self.copy_terrain_button.setText('Terrain is independent' if layout_id>=44 else 'Make terrain independent…')
+            self.copy_terrain_button.setToolTip('Copy base cells only. Shared area-record aliases move together; state changes, graphics and entrances remain shared.')
             actions=self.rom.area_actions[self.area_id]
             self.actions_table.setRowCount(len(actions))
             for row,action in enumerate(actions):
@@ -573,6 +646,8 @@ class MainWindow(QMainWindow):
             if selected is not None:
                 index=self.target.findData(selected)
                 if index>=0:self.target.setCurrentIndex(index)
+            self.terrain_buttons.update_targets();self.terrain_choices.setVisible(self.target.count()>1)
+            self.full_aquaria.setVisible(self.area_id in (24,25))
             rgba,atlas,props,state=self.renderer.area(self.project,self.area_id)
             self._state=state
             brush=self.brush
@@ -585,11 +660,11 @@ class MainWindow(QMainWindow):
             self.tiles.setCurrentRow(brush)
             self.tiles.blockSignals(False)
             self.brush=brush
-            self.tile_label.setText(f"Metatiles · set ${attrs.tileset:02X} · palette ${state.palette:02X}")
+            self.tile_label.setText(f"Metatiles · set ${self.project.tileset(self.area_id):02X} · palette ${state.palette:02X}")
             for index,value in enumerate(self.project.palette(state.palette)):
                 item=QTableWidgetItem();item.setBackground(QColor(*color_rgb(value)));item.setToolTip(f"Color ${index:02X} · BGR15 ${value:04X}")
                 self.palette_table.setItem(index//8,index%8,item)
-            self.details.setText(f"Layout ${area.layout_id:02X} · {attrs.width} × {attrs.height} metatiles · area record file ${area.offset:06X} · {len(self.project.objects(self.area_id))}/{len(area.objects)} object slots\n"+"; ".join(state.warnings))
+            self.details.setText(f"Layout ${layout_id:02X} · {attrs.width} × {attrs.height} metatiles · area record file ${area.offset:06X} · {len(self.project.objects(self.area_id))}/{self.project.object_capacity(self.area_id)} object slots\n"+"; ".join(state.warnings))
             self.object_editor.refresh()
             self.property_editor.refresh()
             self.world_editor.refresh();self.content_editor.refresh()
@@ -600,7 +675,12 @@ class MainWindow(QMainWindow):
         from .layout_storage import plan_layouts
         try:
             plan=plan_layouts(self.project,strict=False)
-            resource=self.rom.areas[self.area_id].layout_id;original=self.rom.layouts[resource]
+            resource=self.project.layout_id(self.area_id)
+            if self.project.expanded:
+                pool=plan.pools[0]
+                self.storage_detail=f'1 MiB expanded ROM export. Layout ${resource:02X}: {plan.sizes[resource]:,} compressed bytes.\nNew storage used: {pool.used:,} / {pool.capacity:,} bytes, including tables, bank padding and reserved content banks.\nIndependent terrain slots: {len(self.project.layout_copies)} / 20.\nOriginal files remain unchanged. BPS supports expanded export; IPS does not.\nPrivate metatile sets: {len(self.project.content["sets"])} / 16. Shared new destination slots: {len(self.project.content["entrances"])+len(self.project.newmaps)} / 39 (doors and map entries). New maps: {len(self.project.newmaps)} / 8. Private sprite sets: {len(self.project.sprite_sets)}.\nNew overworld locations: {len(self.project.world["nodes"])} / 7. Expanded routes: up to 128 segments each.\nExtra objects: up to 16 stored records on smaller field maps. Original larger lists keep their capacity. State patches and source graphics retain their existing limits.'
+                self.storage_budget.setText(f'Expanded storage: {pool.free:,} bytes available · details…');self.storage_budget.setToolTip(self.storage_detail);self.storage_budget.setStyleSheet('color:#b6dfc3;text-align:left');return
+            original=self.rom.layouts[resource]
             pool=next(p for p in plan.pools if resource in p.ids)
             blocked=[p for p in plan.pools if p.free<0]
             target=self.target.currentData()
@@ -641,10 +721,15 @@ class MainWindow(QMainWindow):
             if frame==self.frame.maximum():self.play.setChecked(False)
         finally:self._advancing=False
 
+    def aquaria_section(self,area_id):
+        if area_id not in (24,25) or self.full_aquaria.isChecked():return None
+        return QRectF(0 if area_id==24 else 512,0,512,512)
+
     def refresh_map(self):
         if self._refreshing:return
         rgba,atlas,props,state=self.render_area(self.area_id)
-        self._state=state;self.canvas.set_image(rgba)
+        self._state=state;self.canvas.set_image(rgba,self.aquaria_section(self.area_id))
+        self.terrain_buttons.update_targets()
         self._terrain_sources=self.renderer.terrain_sources(self.area_id,atlas,state,self.backgrounds.isChecked())
         area=self.rom.areas[self.area_id];attrs=self.rom.attributes[area.attributes_id]
         self.canvas.objects=self.project.objects(self.area_id) if self.object_overlay.isChecked() or self.tool.currentText()=="Objects" else ()
@@ -664,11 +749,12 @@ class MainWindow(QMainWindow):
             self.canvas.selection_rect=QRectF(x*16,y*16,width*16,height*16)
         self.canvas.properties=props;self.canvas.cells=bytes(state.cells[int(i)] for i in self._terrain_sources);self.canvas.map_width=attrs.width
         self.canvas.traversal_overlay=self.property_editor.overlay.currentIndex()
+        from .world_expansion import routes as world_routes,nodes as world_nodes,route_data
         self.canvas.world_paths=();self.canvas.world_nodes=()
         if area.layout_id==0 and self.world_editor.overlay.isChecked() and self.tool.currentText()=="Overworld routes":
             selected=self.world_editor.route()
-            self.canvas.world_paths=tuple((route_points(self.project,r),route_available(self.project,r),r==selected) for r in self.rom.routes if self.project.fixed("world_route",r.offset)[0])
-            self.canvas.world_nodes=tuple((node,*node_position(self.project,node)) for node in range(1,57))
+            self.canvas.world_paths=tuple((route_points(self.project,r),route_available(self.project,r),r==selected) for r in world_routes(self.project) if route_data(self.project,r)[0])
+            self.canvas.world_nodes=tuple((node,*node_position(self.project,node)) for node in world_nodes(self.project))
         self.canvas.show_properties=self.collision.isChecked()
         self.canvas.patch_rect=None
         target=self.target.currentData()
@@ -679,13 +765,14 @@ class MainWindow(QMainWindow):
             active=any(a.opcode==0x22 and a.value==patch.id for a in state.applied)
             self.shared.setText(f"Editing map change ${patch.id:02X}, shared wherever this change is referenced. "+("Yellow outline marks its rectangle." if active else "Activate its flag to see edits in this preview."))
         else:
-            users=self.rom.shared_areas(area.layout_id)
+            users=self.project.shared_areas(self.project.layout_id(self.area_id))
             self.shared_links.setText(f"See all {len(users)} terrain configuration(s) and state overrides…")
             self.shared.setText(f"Base terrain is shared by {len(users)} map configuration(s). State changes may override some tiles."+
-                (" Choose Frozen or Thawed using Map version." if area.layout_id==3 else ""))
+                (" Choose Frozen or Thawed using Map setup." if area.layout_id==3 else ""))
+            if self.project.layout_id(self.area_id)>=44:self.shared.setText(f'Independent base terrain · used by {len(users)} configuration(s). Restoration changes, objects, entrances and graphics retain their existing sharing.')
         if self.compare.isChecked():
             before_area=24 if self.area_id==25 else self.area_id
-            self.before.set_image(self.render_area(before_area,self.rom.initial_flags)[0])
+            self.before.set_image(self.render_area(before_area,self.rom.initial_flags)[0],self.aquaria_section(before_area))
         self.canvas.viewport().update()
 
     def edit_key(self,x,y):
@@ -705,6 +792,10 @@ class MainWindow(QMainWindow):
         return int(sources[y*attrs.width+x])
 
     def hover(self,x,y):
+        if self.tool.currentText()=='Objects' and self.object_editor.placing():
+            self.object_editor.palette.hover(x,y);return
+        if self.tool.currentText()=="Artwork" and hasattr(self,"landmark_editor"):
+            self.landmark_editor.hover_map(x,y);return
         attrs=self.rom.attributes[self.rom.areas[self.area_id].attributes_id]
         if 0<=x<attrs.width and 0<=y<attrs.height:
             value=self._state.cells[self.terrain_source(x,y)]
@@ -717,6 +808,9 @@ class MainWindow(QMainWindow):
         self._last_cell=(x,y)
         attrs=self.rom.attributes[self.rom.areas[self.area_id].attributes_id]
         if not (0<=x<attrs.width and 0<=y<attrs.height):return
+        if self.tool.currentText()=="Artwork":
+            if self.rom.areas[self.area_id].layout_id==0:self.landmark_editor.press_map(x,y,pick)
+            return
         if self.tool.currentText()=="Entrances":
             if self.connection_panel.move_button.isChecked():
                 selected=self.connection_panel.entry()
@@ -737,8 +831,9 @@ class MainWindow(QMainWindow):
         if self.tool.currentText()=="Rewards & encounters":return
         if self.tool.currentText()=="Overworld routes":
             if self.rom.areas[self.area_id].layout_id==0:
-                nearby=[n for n in range(1,57) if max(abs(node_position(self.project,n)[0]-x),abs(node_position(self.project,n)[1]-y))<=1]
-                if nearby:self.world_editor.node.setValue(nearby[0])
+                from .world_expansion import nodes
+                nearby=[n for n in nodes(self.project) if max(abs(node_position(self.project,n)[0]-x),abs(node_position(self.project,n)[1]-y))<=1]
+                if nearby:self.world_editor.node.setValue(min(nearby,key=lambda n:abs(node_position(self.project,n)[0]-x)+abs(node_position(self.project,n)[1]-y)))
             return
         if self.tool.currentText()=="Tile behavior":
             sources=list(range(128))
@@ -750,6 +845,9 @@ class MainWindow(QMainWindow):
             except ValueError as error:self.error(error)
             return
         if self.tool.currentText()=="Objects":
+            if self.object_editor.placing() and not pick:
+                self._drag_object=-1;self.object_editor.palette.place(x,y);return
+            if pick:self.object_editor.mode.setCurrentIndex(0)
             objects=self.project.objects(self.area_id)
             hits=[i for i,obj in enumerate(objects) if (obj[3]&63,obj[2]&63)==(x,y)]
             visible=[i for i in hits if objects[i][0] in self.project.flags]
@@ -776,6 +874,8 @@ class MainWindow(QMainWindow):
         elif self.tool.currentText()=="Pencil":self.paint_cell(x,y)
 
     def drag_stroke(self,x,y):
+        if self.tool.currentText()=="Artwork":
+            self.landmark_editor.move_map(x,y);return
         if self.tool.currentText()=="Entrances":
             if getattr(self,"_drag_entrance",None) is not None:
                 self._entrance_drop=(x,y)
@@ -785,6 +885,7 @@ class MainWindow(QMainWindow):
             attrs=self.rom.attributes[self.rom.areas[self.area_id].attributes_id]
             self.selection.drag(max(0,min(x,attrs.width-1)),max(0,min(y,attrs.height-1)));return
         if self.tool.currentText()=="Objects":
+            if self.object_editor.placing():return
             index=getattr(self,"_drag_object",-1)
             if index<0:return
             attrs=self.rom.attributes[self.rom.areas[self.area_id].attributes_id]
@@ -824,6 +925,7 @@ class MainWindow(QMainWindow):
         if not self.render_timer.isActive():self.render_timer.start()
 
     def end_stroke(self):
+        if hasattr(self,"landmark_editor"):self.landmark_editor.finish_map()
         entry=getattr(self,'_drag_entrance',None)
         self._drag_entrance=None
         if entry is not None:
@@ -856,7 +958,7 @@ class MainWindow(QMainWindow):
 
     def update_title(self):
         name=self.project.path.name if self.project.path else "Untitled project"
-        self.setWindowTitle(f"{'* ' if not self.stack.isClean() else ''}{name} — MysticForge")
+        self.setWindowTitle(f"{'* ' if not self.stack.isClean() else ''}{name} — MysticForge · {'1 MiB expanded' if self.project.expanded else '512 KiB'}")
 
     def save_project(self,save_as=False):
         if not self.confirm_database_edits():return False
@@ -886,6 +988,27 @@ class MainWindow(QMainWindow):
 
     def recover_autosave(self):
         self.open_project(recovery=True)
+
+    def new_project(self):
+        if not self.confirm_discard():return
+        self.play.setChecked(False)
+        # Discard windows that hold selections or snapshots from the old ROM
+        # catalog, especially IDs belonging to newly created maps.
+        browser=getattr(self,'event_browser',None)
+        if browser is not None and browser.inspector is not None:
+            browser.inspector.close();browser.inspector.deleteLater()
+        for name in ('event_browser','event_inspector','metatile_window','pixel_window','database_window','patch_dialog'):
+            widget=getattr(self,name,None)
+            if widget is not None:widget.close();widget.deleteLater();delattr(self,name)
+        self.tool.setCurrentText('Pencil');self.selection.reset();self.selection.stamp=None
+        self.arrival=None;self.brush=0
+        self.project=Project(self.project.base_rom);self.area_id=0;self.stack.clear()
+        self.last_area={}
+        for area in self.project.rom.areas:self.last_area.setdefault(area.layout_id,area.id)
+        self.select_area(0)
+        self.preset.setCurrentText('Initial');self.frame.setValue(0);self.compare.setChecked(False)
+        self.layer_bit.setChecked(False);self.refresh();self.fit_views()
+        self.statusBar().showMessage('New project — original ROM, no edits')
 
     def open_project(self,recovery=False):
         if not self.confirm_discard():return

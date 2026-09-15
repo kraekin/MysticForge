@@ -1,4 +1,5 @@
 """Read-only event blocks, call navigation and map destination links."""
+from .event_editing import view_rom
 from PySide6.QtCore import Qt,Signal,QSize,QRect
 from PySide6.QtGui import QColor,QBrush,QFontMetrics
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QPushButton,QLabel,QCheckBox,QTreeWidget,QTreeWidgetItem
@@ -21,6 +22,8 @@ class EventFlowView(QWidget):
         self.location=QLabel();box.addWidget(self.location)
         self.coverage=QLabel();self.coverage.setWordWrap(True);box.addWidget(self.coverage)
         preview_bar=QHBoxLayout();box.addLayout(preview_bar)
+        edit=QPushButton('Edit dialogue / parameters…');edit.clicked.connect(self.edit_event);preview_bar.addWidget(edit)
+        edit.setEnabled(hasattr(window,'project'))
         self.preview_button=QPushButton('Preview selected dialogue…');self.preview_button.clicked.connect(self.preview_dialogue);preview_bar.addWidget(self.preview_button)
         glyphs=QPushButton('Game glyph reference…');glyphs.clicked.connect(self.show_glyphs);preview_bar.addWidget(glyphs);preview_bar.addStretch()
         self.tree=QTreeWidget();self.tree.setHeaderLabels(['Address','Action / branch','Bytes']);self.tree.setColumnWidth(0,155);self.tree.setColumnWidth(1,720);box.addWidget(self.tree)
@@ -31,12 +34,21 @@ class EventFlowView(QWidget):
         note=QLabel('Click “Show steps” to read a called event here, beneath its caller. Collapse it to return to the surrounding sequence. Both branch outcomes are available; nothing is executed. “Focus selected event” opens a separate view with Back navigation.');note.setWordWrap(True);box.addWidget(note)
         self.populate()
 
+    def edit_event(self):
+        from .event_editor import show_editor
+        item=self.tree.currentItem()
+        context=item.data(0,Qt.ItemDataRole.UserRole+8) if item else None
+        entry,extent=context if context is not None else (self.entry,self.extent)
+        address=item.data(0,Qt.ItemDataRole.UserRole+9) if item else None
+        show_editor(self.window,entry,extent,address)
+        self.populate()
+
     def columns(self):
         self.tree.setColumnHidden(0,not self.technical.isChecked());self.tree.setColumnHidden(2,not self.technical.isChecked())
         self.expand_button.setVisible(not self.technical.isChecked())
 
     def populate(self):
-        self.tree.clear();self.inline_rows=0;self.paths={};rows=decode(self.window.rom,self.entry,limit=self.limit,follow_calls=False,extent=self.extent)
+        self.tree.clear();self.inline_rows=0;self.paths={};rows=decode(view_rom(self.window),self.entry,limit=self.limit,follow_calls=False,extent=self.extent)
         self.more.setVisible(any(status(r)=='limit' for r in rows) and self.limit<8192)
         leaders={self.entry}
         for r in rows:
@@ -57,7 +69,7 @@ class EventFlowView(QWidget):
             if r.raw and r.raw[0]==0x2c and len(r.raw)==3 and r.raw[2]<0x80:
                 target=self.window.connections.destination(r.raw[2],r.raw[1])
                 if target:
-                    a,x,y,_=target;item.addChild(QTreeWidgetItem(['',f'Destination: {self.window.rom.areas[a].name} (${a:02X}), ({x}, {y})','']))
+                    a,x,y,_=target;item.addChild(QTreeWidgetItem(['',f'Destination: {view_rom(self.window).areas[a].name} (${a:02X}), ({x}, {y})','']))
             item.setExpanded(True);previous=r.address+len(r.raw)
         unknown=sum(not r.complete for r in rows);calls=sum(label in ('call','fragment') for r in rows for label,_ in r.edges)
         unnamed=sum('not verified' in r.description for r in rows)
@@ -74,7 +86,7 @@ class EventFlowView(QWidget):
     def readable(self,rows,unknown,unnamed,parent=None,ancestry=None):
         if parent is None:self.tree.clear()
         ancestry=ancestry or ((self.entry,self.extent),)
-        presented=readable_rows(self.window.rom,rows)
+        presented=readable_rows(view_rom(self.window),rows)
         branch_sources={}
         for r in rows:
             for label,target in r.edges:
@@ -115,8 +127,10 @@ class EventFlowView(QWidget):
                 if row.raw and row.raw[0]==0x2c and len(row.raw)==3 and row.raw[2]<0x80:
                     target=self.window.connections.destination(row.raw[2],row.raw[1])
                     if target:
-                        a,x,y,_=target;item.setText(1,f'Go to {self.window.rom.areas[a].name}\nArrival: ({x}, {y}) · area ${a:02X}')
+                        a,x,y,_=target;item.setText(1,f'Go to {view_rom(self.window).areas[a].name}\nArrival: ({x}, {y}) · area ${a:02X}')
                 if not row.complete:item.setForeground(1,QBrush(QColor('#ffd08a')))
+            item.setData(0,Qt.ItemDataRole.UserRole+8,ancestry[-1])
+            item.setData(0,Qt.ItemDataRole.UserRole+9,row.address)
             if technical_setup(row):
                 if setup is None:
                     setup=QTreeWidgetItem(['','Technical setup','']);attach(setup,active_parent);setup_count=0
@@ -182,7 +196,7 @@ class EventFlowView(QWidget):
         elif len(ancestry)>=8 or self.inline_rows>=2048:
             item.addChild(QTreeWidgetItem(['','Inline inspection limit reached. Use “Focus selected event” to inspect this event separately.','']))
         else:
-            rows=decode(self.window.rom,target,limit=min(256,2048-self.inline_rows),follow_calls=False,extent=extent)
+            rows=decode(view_rom(self.window),target,limit=min(256,2048-self.inline_rows),follow_calls=False,extent=extent)
             self.readable(rows,0,0,item,ancestry+((target,extent),))
             item.addChild(QTreeWidgetItem(['','End of this preview · continue with the caller below. Branches may leave the caller; this is not an execution trace.','']))
         self.row_sizes()

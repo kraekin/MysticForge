@@ -9,6 +9,7 @@ def span(kind,resource):
         address,count,size=TABLES[kind]
         if type(resource) is int and 0<=resource<count:return pc(address)+resource*size,size
         raise FormatError("Database record is outside its verified table")
+    if kind=="terrain_graphic" and 0<=resource<34*32:return pc(0x058C80)+resource*24,24
     if kind=="metatile_graphics" and 0<=resource<16:return pc(0x068000)+resource*512,512
     if kind=="metatile_attributes" and 0<=resource<16:return pc(0x06A000)+resource*128,128
     if kind=="properties" and 0<=resource<16:return pc(0x06A800)+resource*256,256

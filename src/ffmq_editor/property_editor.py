@@ -31,11 +31,11 @@ class PropertyEditor(QWidget):
         self.raw[0].setValue((self.raw[0].value()&0xf0)|self.level.value()|(8 if self.bridge.isChecked() else 0))
 
     def refresh(self):
-        w=self.window;tileset=w.rom.attributes[w.rom.areas[w.area_id].attributes_id].tileset
+        w=self.window;tileset=w.project.tileset(w.area_id)
         tile=self.tile.value();self.resource=tileset
         for i,spin in enumerate(self.raw):spin.setValue(w.project.get(("properties",tileset,tile*2+i)))
         self.decode()
-        refs=[a.id for a in w.rom.areas if w.rom.attributes[a.attributes_id].tileset==tileset]
+        refs=[a.id for a in w.rom.areas if w.project.tileset(a.id)==tileset]
         self.info.setText(f"Shared set ${tileset:02X}, tile ${tile:02X}\nUsed by {len(refs)} areas: "+", ".join(f"{a:02X}" for a in refs))
 
     def commit(self):

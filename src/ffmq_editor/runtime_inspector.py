@@ -1,4 +1,5 @@
 """Evidence-focused view of static runtime dependencies, without executing events."""
+from .event_editing import view_rom
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QLabel,QLineEdit,QTreeWidget,QTreeWidgetItem,QPushButton
 from .events import decode
@@ -10,7 +11,7 @@ class RuntimeInspector(QWidget):
         self.search=QLineEdit();self.search.setPlaceholderText('Filter pointers, generated text, actor interactions, or unresolved dependencies…');box.addWidget(self.search)
         self.tree=QTreeWidget();self.tree.setHeaderLabels(['Evidence','Address','Meaning / dependency']);self.tree.setColumnWidth(0,160);self.tree.setColumnWidth(1,95);box.addWidget(self.tree)
         seen=set()
-        for row in decode(window.rom,entry,limit=8192,extent=extent):
+        for row in decode(view_rom(window),entry,limit=8192,extent=extent):
             text=row.description
             if not any(word in text.lower() for word in ('runtime','proven','interaction reference','generated text')):continue
             if (row.address,text) in seen:continue

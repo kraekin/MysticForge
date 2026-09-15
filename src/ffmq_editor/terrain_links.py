@@ -8,7 +8,7 @@ def show_terrain_uses(w):
     note=QLabel('Base edits affect every configuration listed for this layout. Conditional map changes replace the listed rectangles when their flags apply. Visiting a configuration keeps your current preview flags.');note.setWordWrap(True);box.addWidget(note)
     tree=QTreeWidget();tree.setHeaderLabels(['Map / configuration','Conditional tile replacements']);box.addWidget(tree)
     kind,resource=w.target.currentData()
-    users=w.rom.shared_areas(resource) if kind=='layout' else [a.id for a in w.rom.areas if any(c.opcode==0x22 and c.value==resource for c in w.rom.area_actions[a.id])]
+    users=w.project.shared_areas(resource) if kind=='layout' else [a.id for a in w.rom.areas if any(c.opcode==0x22 and c.value==resource for c in w.rom.area_actions[a.id])]
     for area_id in users:
         area=w.rom.areas[area_id];details=[]
         for action in w.rom.area_actions[area_id]:

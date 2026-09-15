@@ -13,9 +13,9 @@ class Stamp:
     signature:tuple
 
     @staticmethod
-    def profile(rom,area_id):
+    def profile(rom,area_id,project=None):
         attrs=rom.attributes[rom.areas[area_id].attributes_id]
-        return (attrs.tileset,*attrs.raw[2:10])
+        return (project.tileset(area_id) if project else attrs.tileset,*attrs.raw[2:10])
 
     def save(self,path):
         atomic_write(Path(path),(json.dumps({"format":"ffmq-terrain-stamp","version":1,
@@ -49,11 +49,11 @@ class Selection:
                 key=w.edit_key(x+dx,y+dy)
                 if key is None:raise ValueError("Selection extends outside the selected edit resource")
                 cells.append(w.project.get(key))
-        return Stamp(width,height,bytes(cells),Stamp.profile(w.rom,w.area_id))
+        return Stamp(width,height,bytes(cells),Stamp.profile(w.rom,w.area_id,w.project))
 
     def paste_changes(self,stamp,x,y):
         w=self.window
-        if stamp.signature!=Stamp.profile(w.rom,w.area_id):raise ValueError("Stamp uses different tile graphics/properties. Choose a compatible map.")
+        if stamp.signature!=Stamp.profile(w.rom,w.area_id,w.project):raise ValueError("Stamp uses different tile graphics/properties. Choose a compatible map.")
         changes={}
         for dy in range(stamp.height):
             for dx in range(stamp.width):

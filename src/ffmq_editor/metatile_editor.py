@@ -1,6 +1,6 @@
 """Shared metatile composition editing; all controls commit undoable project edits."""
 import numpy as np
-from PySide6.QtCore import Qt,QSize
+from PySide6.QtCore import Qt,QSize,Signal
 from PySide6.QtGui import QIcon,QPixmap
 from PySide6.QtWidgets import (QMainWindow,QWidget,QVBoxLayout,QHBoxLayout,QGridLayout,QLabel,QPushButton,QComboBox,QCheckBox,QListWidget,QListWidgetItem,QSplitter,QGroupBox)
 from .render import color_rgb
@@ -18,6 +18,12 @@ def composition_changes(project,tileset,tile,graphics,bits):
     return {k:(project.get(k),v) for k,v in values.items() if project.get(k)!=v}
 
 
+class ComponentButton(QPushButton):
+    doubleClicked=Signal()
+    def mouseDoubleClickEvent(self,event):
+        if event.button()==Qt.MouseButton.LeftButton:self.doubleClicked.emit();event.accept()
+        else:super().mouseDoubleClickEvent(event)
+
 class MetatileWindow(QMainWindow):
     def __init__(self,w):
         super().__init__(w);self.w=w;self.loading=False;self.tile=0;self.quadrant=0;self.clipboard=None
@@ -29,13 +35,15 @@ class MetatileWindow(QMainWindow):
         for label,fn in [('Undo',w.stack.undo),('Redo',w.stack.redo)]:
             b=QPushButton(label);b.clicked.connect(fn);row.addWidget(b)
         box.addLayout(row);self.info=QLabel();self.info.setWordWrap(True);box.addWidget(self.info)
+        from .expanded_content_editor import private_metatiles
+        self.private_button=QPushButton('Make this configuration’s metatile set independent…');self.private_button.clicked.connect(lambda:private_metatiles(w,self.area_id));box.addWidget(self.private_button)
         split=QSplitter();box.addWidget(split,1)
         self.metatiles=self.tile_list(48,64);split.addWidget(self.metatiles)
         middle=QWidget();mid=QVBoxLayout(middle);self.heading=QLabel();self.heading.setObjectName('heading');mid.addWidget(self.heading)
         self.preview=QLabel();self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter);mid.addWidget(self.preview)
         group=QGroupBox('Select a component, then choose a graphic on the right');grid=QGridLayout(group);self.components=[];self.flips=[]
         for q,label in enumerate(('Top left','Top right','Bottom left','Bottom right')):
-            container=QWidget();column=QVBoxLayout(container);button=QPushButton(label);button.setCheckable(True);button.setStyleSheet("QPushButton:checked { border: 2px solid #8fe8ff; background: #284d60; }");button.setIconSize(QSize(48,48));button.clicked.connect(lambda _,q=q:self.select_quadrant(q));column.addWidget(button)
+            container=QWidget();column=QVBoxLayout(container);button=ComponentButton(label);button.doubleClicked.connect(lambda q=q:self.edit_component_pixels(q));button.setToolTip("Double-click to edit this component’s source pixels");button.setCheckable(True);button.setStyleSheet("QPushButton:checked { border: 2px solid #8fe8ff; background: #284d60; }");button.setIconSize(QSize(48,48));button.clicked.connect(lambda _,q=q:self.select_quadrant(q));column.addWidget(button)
             flip=QCheckBox('Flip horizontally');flip.toggled.connect(lambda checked,q=q:self.edit_flip(q,checked));column.addWidget(flip);grid.addWidget(container,q//2,q%2);self.components.append(button);self.flips.append(flip)
         mid.addWidget(group)
         self.palette=QComboBox();self.palette.addItem('Use each graphic’s default palette',-1)
@@ -50,7 +58,7 @@ class MetatileWindow(QMainWindow):
         self.references=QListWidget();self.references.itemDoubleClicked.connect(self.visit);mid.addWidget(self.references,1)
         self.feedback=QLabel();self.feedback.setWordWrap(True);mid.addWidget(self.feedback);split.addWidget(middle)
         right=QWidget();rb=QVBoxLayout(right);rb.addWidget(QLabel('8×8 source graphics · select to assign'))
-        self.graphics=self.tile_list(32,49);rb.addWidget(self.graphics);split.addWidget(right);split.setSizes([220,620,280])
+        self.graphics=self.tile_list(32,49);rb.addWidget(self.graphics);pixel_button=QPushButton('Edit selected graphic pixels…');pixel_button.clicked.connect(self.edit_pixels);rb.addWidget(pixel_button);split.addWidget(right);split.setSizes([220,620,280])
         self.context.currentIndexChanged.connect(self.refresh);self.metatiles.currentRowChanged.connect(self.select_tile);self.graphics.itemClicked.connect(self.assign);self.graphics.itemActivated.connect(self.assign)
         self.context.setCurrentIndex(w.area_id);self.tile=w.brush;self.refresh()
     @staticmethod
@@ -75,8 +83,10 @@ class MetatileWindow(QMainWindow):
         self.loading=True
         scrolls=[(view,view.horizontalScrollBar().value(),view.verticalScrollBar().value()) for view in (self.metatiles,self.graphics,self.references)]
         try:
-            w=self.w;area=w.rom.areas[self.area_id];attr=w.rom.attributes[area.attributes_id];self.tileset=attr.tileset
-            self.pixels,self.defaults=w.renderer.graphics(area.attributes_id)
+            w=self.w;area=w.rom.areas[self.area_id];attr=w.rom.attributes[area.attributes_id];self.tileset=w.project.tileset(self.area_id)
+            self.private_button.setEnabled(self.tileset<16)
+            self.private_button.setText('Metatile set is independent' if self.tileset>=16 else 'Make this configuration’s metatile set independent…')
+            self.pixels,self.defaults=w.renderer.project_graphics(w.project,area.attributes_id)
             state=w.project.state(self.area_id);self.colors=np.array([color_rgb(v) for v in w.project.palette(state.palette)],dtype=np.uint8).reshape(8,8,3)
             self.info.setText(f'Shared metatile set ${self.tileset:02X} · palette ${state.palette:02X}. Preview shows stored definitions before story remaps, with static source graphics. Different configurations can load different artwork for the same component IDs.')
             # Keep item identities stable: refresh can run inside mousePressEvent.
@@ -97,7 +107,7 @@ class MetatileWindow(QMainWindow):
                 for a in w.rom.areas:self.context.setItemText(a.id,f'{a.name} / {version_name(w,a.id)}')
             finally:self.context.blockSignals(False)
             for a in w.rom.areas:
-                if w.rom.attributes[a.attributes_id].tileset==self.tileset:
+                if w.project.tileset(a.id)==self.tileset:
                     item=QListWidgetItem(f'{a.name} / {version_name(w,a.id)}');item.setData(Qt.ItemDataRole.UserRole,a.id);self.references.addItem(item)
             self.load_controls()
         finally:
@@ -135,6 +145,14 @@ class MetatileWindow(QMainWindow):
         self.commit(graphics,bits,'Paste metatile appearance')
     def restore(self):
         p=self.w.project;graphics=[p.original(('metatile_graphics',self.tileset,self.tile*4+q)) for q in range(4)];bits=p.original(('metatile_attributes',self.tileset,self.tile));self.commit(graphics,bits,'Restore metatile appearance')
+    def edit_component_pixels(self,q):
+        from .pixel_editor import open_pixels
+        graphics,_=composition(self.w.project,self.tileset,self.tile)
+        open_pixels(self.w,self.area_id,graphics[q],self.palette.currentData())
+    def edit_pixels(self):
+        from .pixel_editor import open_pixels
+        item=self.graphics.currentItem()
+        if item is not None:open_pixels(self.w,self.area_id,item.data(Qt.ItemDataRole.UserRole),self.palette.currentData())
     def visit(self,item):self.w.select_area(item.data(Qt.ItemDataRole.UserRole));self.w.raise_()
 
 

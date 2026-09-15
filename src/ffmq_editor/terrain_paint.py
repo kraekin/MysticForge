@@ -6,20 +6,20 @@ def scenery_value(w,old,new):
     if old==new or w.paint_triggers.isChecked():return new
     attrs=w.rom.attributes[w.rom.areas[w.area_id].attributes_id]
     # Use effective preview properties to detect the trigger; verify decorative candidates against configured remaps.
-    properties=np.frombuffer(w.project.fixed('properties',attrs.tileset),dtype=np.uint8).reshape(128,2)
+    properties=np.frombuffer(w.project.fixed('properties',w.project.tileset(w.area_id)),dtype=np.uint8).reshape(128,2)
     def trigger(index):return int(properties[index,1])&0xE0==0x80
     preview_properties=properties.copy()
     for dest,source in w._state.remaps:preview_properties[dest]=preview_properties[source]
     preview_trigger=lambda index:int(preview_properties[index,1])&0xE0==0x80
     if not preview_trigger(new&127) or preview_trigger(old&127):return new
-    graphics=w.project.fixed("metatile_graphics",attrs.tileset)
-    bits=w.project.fixed("metatile_attributes",attrs.tileset)
+    graphics=w.project.fixed("metatile_graphics",w.project.tileset(w.area_id))
+    bits=w.project.fixed("metatile_attributes",w.project.tileset(w.area_id))
     tile=new&127
     candidates=[i for i in range(128) if int(properties[i,1])==0 and properties[i,0]==properties[tile,0] and bits[i]==bits[tile] and graphics[i*4:i*4+4]==graphics[tile*4:tile*4+4]]
     # A remapped definition cannot be guaranteed decorative in every configuration.
     remapped=set()
     for area in w.rom.areas:
-        if w.rom.attributes[area.attributes_id].tileset!=attrs.tileset:continue
+        if w.project.tileset(area.id)!=w.project.tileset(w.area_id):continue
         for action in w.rom.area_actions[area.id]:
             if action.opcode==0x23:
                 for dest,source in w.rom.remaps(action.value):remapped.add(dest)

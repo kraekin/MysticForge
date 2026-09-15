@@ -31,8 +31,9 @@ class Sprites:
         palette_ids[6] = 1
         if selector == 255:
             return tiles, self.colors(palette_ids)
-        descriptor = pc(0x0B88FC)+u16(data,pc(0x0B8892)+selector*2)
-        palette_ids[:6] = read(data,descriptor,6)
+        from .sprite_sets import descriptor as sprite_descriptor
+        info = sprite_descriptor(self.rom,area_id)
+        palette_ids[:6] = info[:6]
 
         def load(source, destination, count):
             for i in range(count):
@@ -41,10 +42,10 @@ class Sprites:
         # Common chests/boxes: buffer $0000 -> VRAM $6900 -> OBJ tile $90.
         load(0x04E520,0x90,16)
         # 44 presence bits, followed by one graphics selector for each set bit.
-        cursor = descriptor+12
+        cursor = 12
         for slot in range(44):
-            if data[descriptor+6+slot//8] & (0x80>>(slot%8)):
-                graphic = data[cursor]; cursor += 1
+            if info[6+slot//8] & (0x80>>(slot%8)):
+                graphic = info[cursor]; cursor += 1
                 destination = 0x90+u16(data,pc(0x01A5DF)+slot*2)//32
                 source = 0x04D7A0+(graphic&127)*96 if graphic&128 else 0x049A20+graphic*384
                 # $FF entries select a non-ROM range in the vanilla loader;
@@ -52,7 +53,7 @@ class Sprites:
                 if graphic!=255:load(source,destination,8 if graphic&128 else 16)
         # The shared monster sheet occupies the tail unless the descriptor
         # requests the special boss sheet (loaded separately according to F2).
-        if not data[descriptor+11]&1:
+        if not info[11]&1:
             load(0x04ADA0,0x180,96)
         # The hero/companion slots preceding $90 are filled by other loaders.
         load(0x049A20,0x10,16)
@@ -85,13 +86,15 @@ class Sprites:
         if occlusion is not None:mask &= ~occlusion[top:bottom,left:right]
         target[mask,:3]=colors[crop[mask]];target[mask,3]=255
 
-    def draw(self, canvas, area_id, flags, show_hidden=False, foreground=None, field_priority=3, frame=0, palette_changes=None, objects=None):
+    def draw(self, canvas, area_id, flags, show_hidden=False, foreground=None, field_priority=3, frame=0, palette_changes=None, objects=None, world_landmarks=None):
         data=self.rom.data;area=self.rom.areas[area_id]
         if area.layout_id==0:
             tiles,colors=self.world_set()
             cursor=pc(0x07EB44)
-            while data[cursor]<128:
-                y,x,flag,tile,attr=read(data,cursor,5);cursor+=5
+            if world_landmarks is None:
+                world_landmarks=[]
+                while data[cursor]<128:world_landmarks.append(read(data,cursor,5));cursor+=5
+            for y,x,flag,tile,attr in world_landmarks:
                 if flag and flag not in flags and not show_hidden:continue
                 # These are 16x16 hardware OBJs; row stride is 16 tiles.
                 base=tile+((attr&1)<<8)
@@ -111,8 +114,9 @@ class Sprites:
             for index,value in palette_changes.items():colors[5,index]=color_rgb(value)
         selector=area.header[2]
         if selector!=255:
-            descriptor=pc(0x0B88FC)+u16(data,pc(0x0B8892)+selector*2)
-            if data[descriptor+11]&1 and 0xF2 not in flags:
+            from .sprite_sets import descriptor as sprite_descriptor
+            info=sprite_descriptor(self.rom,area_id)
+            if info[11]&1 and 0xF2 not in flags:
                 tiles=tiles.copy()
                 for i in range(128):tiles[0x180+i]=self.tile(0x04BE20+i*24)
         # Stable coordinate order approximates overlapping objects' depth.

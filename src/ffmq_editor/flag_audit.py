@@ -72,7 +72,7 @@ class FlagAudit:
                 kind=(obj[5]>>3)&3
                 label={0:'NPC',1:'encounter',2:'chest',3:'object'}[kind]
                 self.add(obj[0],'Object','Visibility',f'{area.name}: {label} ${index:02X} uses this visibility flag',
-                         f'ROM file ${area.offset+8+index*7:06X}',('object',area.id,index),
+                         f'Original ROM file ${area.offset+8+index*7:06X}' if index<len(area.objects) else 'Expanded object record',('object',area.id,index),
                          'Set: passes the game-flag visibility test. Clear: fails that test. Collected/defeated state and scripts can still hide or move it. Runtime slots differ from map object IDs.')
             table=rom.data[pc(0x06BE77)+area.id]
             cursor=pc(0x06BF15)+u16(rom.data,pc(0x06BEE3)+2*table) if table<128 else 0
@@ -80,8 +80,9 @@ class FlagAudit:
                 text=f'Use palette ${action.value:02X}' if action.opcode==0x24 else field_action(action.opcode,action.value)
                 self.add(action.flag,'Map','When set',f'{area.name}: {text}',f'ROM file ${cursor+3*i:06X}',('map',area.id),
                          'The area loading action is gated by this flag. Other enabled actions may override its effect; this is not a full state simulation.')
-        for route in rom.routes:
-            flag=gate(project,route);destination=project.fixed('world_route',route.offset)[0]
+        from .world_expansion import routes,route_data
+        for route in routes(project):
+            flag=gate(project,route);destination=route_data(project,route)[0]
             if not flag or not destination:continue
             self.add(flag,'Route','Unlock test',f'Overworld node ${route.node:02X} → ${destination:02X}, {DIRECTIONS[route.direction]}',
                      f'Route ROM file ${route.offset:06X}',('map',0),'Set: passes this route gate. Clear: blocks this route. Node IDs are not area IDs.')

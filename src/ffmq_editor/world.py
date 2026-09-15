@@ -28,7 +28,8 @@ def inventory(data):
 def position(project,node):return tuple(project.fixed("world_node",node))
 
 def points(project,route,raw=None):
-    raw=project.fixed("world_route",route.offset) if raw is None else raw
+    from .world_expansion import route_data
+    raw=route_data(project,route) if raw is None else raw
     x,y=position(project,route.node);result=[(x,y)]
     for step in raw[1:]:
         dx,dy=DELTAS[(step>>5)&3]
@@ -38,8 +39,10 @@ def points(project,route,raw=None):
     return tuple(result)
 
 def validate(project,route,raw):
-    if len(raw)!=route.size:raise FormatError("Route must retain its original segment count; expansion is not enabled")
-    if raw[0]>56 or any(step<128 or step&31==0 for step in raw[1:]):raise FormatError("Invalid route node or segment length (use 1–31)")
+    if not project.expanded and len(raw)!=route.size:raise FormatError("Route must retain its original segment count; expansion is not enabled")
+    from .world_expansion import nodes
+    if not raw or len(raw)>129:raise FormatError("Route supports at most 128 segments")
+    if (raw[0]!=0 and raw[0] not in nodes(project)) or any(step<128 or step&31==0 for step in raw[1:]):raise FormatError("Invalid route node or segment length (use 1–31)")
     if raw[0]==0:
         if len(raw)>1:raise FormatError("Disable a route with gate flag 0, preserving its destination and steps")
     elif points(project,route,raw)[-1]!=position(project,raw[0]):
@@ -48,5 +51,6 @@ def validate(project,route,raw):
 def gate(project,route):return project.fixed("world_gate",route.node)[route.direction]
 
 def available(project,route):
+    from .world_expansion import route_data
     flag=gate(project,route)
-    return bool(flag and flag in project.flags and project.fixed("world_route",route.offset)[0])
+    return bool(flag and flag in project.flags and route_data(project,route)[0])

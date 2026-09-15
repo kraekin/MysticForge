@@ -27,6 +27,8 @@ class WelcomeWindow(QMainWindow):
         self.open_button.setEnabled(False);self.status.setText('Loading ROM…')
         try:
             editor=MainWindow(Rom(path));self.editor=editor;editor.show();self.close()
+            from .expansion_editor import show_expansion
+            show_expansion(editor,startup=True)
         except Exception as error:
             self.status.setText('Could not open this ROM. Select an original unheadered USA v1.0 copy and try again.')
             QMessageBox.warning(self,'Could not open ROM',str(error))

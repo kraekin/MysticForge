@@ -1,4 +1,5 @@
 """Modeless event search and incoming-reference navigation."""
+from .event_editing import event_rom
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,QComboBox,
     QPushButton,QSplitter,QWidget,QTreeWidget,QTreeWidgetItem,QPlainTextEdit,QApplication)
@@ -10,7 +11,7 @@ ROLE=Qt.ItemDataRole.UserRole
 class EventBrowser(QDialog):
     def __init__(self,window):
         super().__init__(window);self.window=window;self.inspector=None;self.stale=False
-        self.setWindowTitle('MysticForge — Event browser (read-only)');self.resize(1200,820)
+        self.setWindowTitle('MysticForge — Event browser');self.resize(1200,820)
         box=QVBoxLayout(self)
         title=QLabel('Events & references');title.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(title)
         self.note=QLabel();self.note.setWordWrap(True);box.addWidget(self.note)
@@ -27,6 +28,7 @@ class EventBrowser(QDialog):
         self.dialogue_button=QPushButton('Preview dialogue…');self.dialogue_button.clicked.connect(self.preview_dialogue);layout.addWidget(self.dialogue_button)
         self.summary_button=QPushButton('Read event summary…');self.summary_button.clicked.connect(self.open_summary);layout.addWidget(self.summary_button)
         self.open_button=QPushButton('Open event flow…');self.open_button.clicked.connect(self.open_event);layout.addWidget(self.open_button)
+        self.edit_button=QPushButton('Edit dialogue / parameters…');self.edit_button.clicked.connect(self.edit_event);layout.addWidget(self.edit_button)
         layout.addWidget(QLabel('Referenced by — double-click a row to visit its source'))
         self.references=QTreeWidget();self.references.setHeaderLabels(['Type','Source']);self.references.setColumnWidth(0,85);layout.addWidget(self.references,1)
         self.visit_button=QPushButton('Go to selected reference');self.visit_button.clicked.connect(self.visit);layout.addWidget(self.visit_button)
@@ -40,15 +42,15 @@ class EventBrowser(QDialog):
         self.refresh()
 
     def mark_stale(self,*_):
-        self.stale=True;self.note.setText('Project changed. Refresh to update object and entrance references. This browser is a read-only snapshot.')
+        self.stale=True;self.note.setText('Project changed. Refresh to update object and entrance references. This browser is a project snapshot.')
 
     def refresh(self):
-        selected=self.list.currentItem();key=selected.data(0,ROLE) if selected else None
+        selected=self.list.currentItem();key=tuple(selected.data(0,ROLE)) if selected else None
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        try:self.catalog=EventCatalog(self.window.rom,self.window.project)
+        try:self.catalog=EventCatalog(event_rom(self.window.project),self.window.project)
         finally:QApplication.restoreOverrideCursor()
-        self.project=self.window.project;self.snapshot_edits=dict(self.project.edits);self.stale=False
-        self.note.setText('Read-only snapshot. Search includes dialogue and reference names. References show static calls and both branch outcomes, not a running-game trace. '+ ' '.join(self.catalog.notes))
+        self.project=self.window.project;self.snapshot_edits=dict(self.project.edits);self.snapshot_events=dict(self.project.event_edits);self.stale=False
+        self.note.setText('Project snapshot. Use Edit dialogue / parameters for supported edits. Search includes dialogue and reference names. References show static calls and both branch outcomes, not a running-game trace. '+ ' '.join(self.catalog.notes))
         self.list.clear();self.items={}
         for key2,record in sorted(self.catalog.records.items(),key=lambda kv:(kv[0][0],kv[0][1] or -1)):
             label=', '.join(sorted(record.aliases)) or 'Linked routine / branch'
@@ -74,6 +76,7 @@ class EventBrowser(QDialog):
     def select(self):
         item=self.list.currentItem();self.references.clear();self.visit_button.setEnabled(False)
         self.open_button.setEnabled(item is not None)
+        self.edit_button.setEnabled(item is not None)
         self.summary_button.setEnabled(item is not None)
         if item is None:self.heading.setText('No matching events');self.preview.clear();self.dialogue_button.setEnabled(False);return
         record=self.catalog.records[tuple(item.data(0,ROLE))]
@@ -87,7 +90,7 @@ class EventBrowser(QDialog):
         if not record.references:self.references.addTopLevelItem(QTreeWidgetItem(['','No incoming references found in the indexed static sources.']))
 
     def fresh(self):
-        if self.stale or self.project is not self.window.project or self.snapshot_edits!=self.window.project.edits:
+        if self.stale or self.project is not self.window.project or self.snapshot_edits!=self.window.project.edits or self.snapshot_events!=self.window.project.event_edits:
             self.refresh();return False
         return True
 
@@ -109,6 +112,15 @@ class EventBrowser(QDialog):
         overview='\n'.join([*sorted(record.aliases),f'Event ${record.address:06X}',f'{len(record.references)} static incoming references. Browse references in the event browser.'])
         self.inspector=EventInspector(self.window,f'Event ${record.address:06X}',overview,record.address,extent=record.extent)
         self.inspector.show()
+
+    def edit_event(self):
+        if not self.fresh():return
+        item=self.list.currentItem()
+        if item is None:return
+        record=self.catalog.records[tuple(item.data(0,ROLE))]
+        from .event_editor import show_editor
+        show_editor(self.window,record.address,record.extent)
+        self.refresh()
 
     def open_summary(self):
         self.open_event()
@@ -143,5 +155,5 @@ def show_browser(window):
     browser=getattr(window,'event_browser',None)
     if browser is None:
         browser=EventBrowser(window);window.event_browser=browser
-    elif browser.stale or browser.project is not window.project or browser.snapshot_edits!=window.project.edits:browser.refresh()
+    elif browser.stale or browser.project is not window.project or browser.snapshot_edits!=window.project.edits or browser.snapshot_events!=window.project.event_edits:browser.refresh()
     browser.show();browser.raise_();browser.activateWindow()

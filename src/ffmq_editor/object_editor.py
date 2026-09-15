@@ -1,5 +1,5 @@
-"""Editing existing seven-byte records without changing list identity or size."""
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QListWidget,QLabel,QFormLayout,QSpinBox,QPushButton,QScrollArea,QHBoxLayout
+"""Inspect, move and place seven-byte field objects within verified capacity."""
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QListWidget,QLabel,QFormLayout,QSpinBox,QPushButton,QScrollArea,QHBoxLayout,QComboBox,QStackedWidget
 
 # Field encodings verified against the area loader. Unexposed bits survive edits.
 FIELDS={"X":(3,0x3f,0),"Y":(2,0x3f,0),"Facing":(3,0xc0,6),
@@ -19,14 +19,18 @@ def field_changes(project,area_id,index,values):
             edited[2]=(edited[2]&63)|((value&96)<<1)
             edited[4]=(edited[4]&224)|(value&31)
         else:edited[byte]=(edited[byte]&(~mask&255))|(value<<shift)
-    return {("object",area.offset+8+index*7,b):(original[b],value)
+    return {project.object_key(area_id,index,b):(original[b],value)
             for b,value in enumerate(edited) if value!=original[b]}
 
 
 class ObjectEditor(QWidget):
     def __init__(self,window):
         super().__init__();self.window=window;self.area_id=None
-        box=QVBoxLayout(self)
+        root=QVBoxLayout(self);self.mode=QComboBox();self.mode.addItems(['Select / move','Place objects']);root.addWidget(self.mode)
+        sprites=QPushButton('Map sprites…');root.addWidget(sprites)
+        from .sprite_set_editor import open_sprites,open_interactions
+        sprites.clicked.connect(lambda:open_sprites(window))
+        self.pages=QStackedWidget();root.addWidget(self.pages,1);details=QWidget();self.pages.addWidget(details);box=QVBoxLayout(details)
         self.list=QListWidget();box.addWidget(self.list,1)
         self.list.currentRowChanged.connect(self.show_record)
         self.list.currentRowChanged.connect(self.open_content)
@@ -43,13 +47,26 @@ class ObjectEditor(QWidget):
         self.fields["Interaction ID"].setToolTip("Reference consumed by the interaction class; not a direct item ID. Scripts, encounters and chest rewards are separate resources.")
         scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(body);box.addWidget(scroll,2)
         self.apply=QPushButton("Apply object changes");box.addWidget(self.apply);self.apply.clicked.connect(self.commit)
+        choose_interaction=QPushButton('Choose interaction…');box.addWidget(choose_interaction);choose_interaction.clicked.connect(lambda:open_interactions(self))
+        choose_appearance=QPushButton('Choose appearance from palette…');box.addWidget(choose_appearance);choose_appearance.clicked.connect(lambda:self.mode.setCurrentIndex(1))
         content=QPushButton("Open reward / encounter");content.clicked.connect(lambda:self.window.content_editor.open_object(self.selected));box.addWidget(content)
         inspect=QPushButton("Open full inspector…");inspect.clicked.connect(self.inspect);box.addWidget(inspect)
         buttons=QHBoxLayout();self.add=QPushButton("Append copy");self.remove=QPushButton("Remove last")
         buttons.addWidget(self.add);buttons.addWidget(self.remove);box.addLayout(buttons)
         self.add.clicked.connect(self.append_copy);self.remove.clicked.connect(self.remove_last)
-        note=QLabel("Append reuses capacity freed by Remove last. Removing only the final record preserves other object indices. Shared-tail lists cannot resize. Interaction/script references and persistence need game testing. Overworld landmarks use another format.")
+        note=QLabel("Expanded mode permits up to 16 stored objects on smaller field maps; larger original lists keep their original limit. Append copies the selected object's interaction and visibility flag—choose these deliberately, since a copied chest/enemy may share persistence. Only tail removal is supported. Overworld landmarks use another format.")
         note.setWordWrap(True);box.addWidget(note)
+        from .object_palette import ObjectPalette
+        self.palette=ObjectPalette(self);self.pages.addWidget(self.palette)
+        self.mode.currentIndexChanged.connect(self.change_mode)
+
+    def change_mode(self,index):
+        self.window.end_stroke();self.window._drag_object=-1
+        self.window.canvas.object_preview=None;self.window.canvas.viewport().update()
+        self.pages.setCurrentIndex(index)
+        if index:self.palette.refresh()
+
+    def placing(self):return self.mode.currentIndex()==1
 
     @property
     def selected(self):return self.list.currentRow()
@@ -59,6 +76,7 @@ class ObjectEditor(QWidget):
         open_object(self.window,self.selected)
 
     def open_content(self,index):
+        if self.placing():return
         if not hasattr(self.window,"content_editor"):return
         objects=self.window.project.objects(self.window.area_id)
         if 0<=index<len(objects) and ((objects[index][5]>>3)&3) in (1,2):
@@ -73,12 +91,14 @@ class ObjectEditor(QWidget):
             self.list.addItem(f"{i:02X} · sprite ${obj[6]&127:02X} · ({obj[3]&63}, {obj[2]&63}) · {state}")
         self.list.setCurrentRow(previous if previous<self.list.count() else -1)
         self.list.blockSignals(False);self.show_record(self.selected)
+        if self.placing():self.palette.refresh()
 
     def show_record(self,index):
         w=self.window;objects=w.project.objects(w.area_id);valid=0<=index<len(objects)
         area=w.rom.areas[w.area_id];structural=area.offset in w.rom.structural_object_sets
         self.remove.setEnabled(structural and bool(objects))
-        self.add.setEnabled(structural and len(objects)<len(area.objects))
+        self.add.setEnabled(structural and len(objects)<w.project.object_capacity(w.area_id))
+        self.add.setText('Append copy' if valid else 'Add object')
         self.apply.setEnabled(valid)
         for spin in self.fields.values():spin.setEnabled(valid)
         if not valid:
@@ -86,9 +106,10 @@ class ObjectEditor(QWidget):
         else:
             area=w.rom.areas[w.area_id];obj=w.project.objects(w.area_id)[index]
             for name,(byte,mask,shift) in FIELDS.items():self.fields[name].setValue(((obj[2]&192)>>1)|(obj[4]&31) if name=="Behavior index" else (obj[byte]&mask)>>shift)
-            offset=area.offset+8+index*7;refs=w.rom.object_references[offset]
-            self.summary.setText(f"Record ${offset:06X} · shared by areas "+", ".join(f"${a:02X}" for a,_ in refs)+
-                                 f"\nRaw: {obj.hex(' ').upper()}\nSlots: {len(objects)}/{len(area.objects)}")
+            offset=area.offset+8+index*7;refs=w.rom.object_references.get(offset,[(a.id,index) for a in w.rom.areas if a.offset==area.offset]) if index<len(area.objects) else [(a.id,index) for a in w.rom.areas if a.offset==area.offset]
+            location=f"Original record ${offset:06X}" if index<len(area.objects) else "Expanded record"
+            self.summary.setText(location+" · shared by areas "+", ".join(f"${a:02X}" for a,_ in refs)+
+                                 f"\nRaw: {obj.hex(' ').upper()}\nSlots: {len(objects)}/{w.project.object_capacity(w.area_id)}"+(" · new expanded record" if index>=len(area.objects) else ""))
         if hasattr(w,"render_timer"):w.refresh_map()
 
     def commit(self):
@@ -108,9 +129,9 @@ class ObjectEditor(QWidget):
 
     def append_copy(self):
         w=self.window;area=w.rom.areas[w.area_id];objects=w.project.objects(w.area_id);count=len(objects)
-        if area.offset not in w.rom.structural_object_sets or count>=len(area.objects):return
+        if area.offset not in w.rom.structural_object_sets or count>=w.project.object_capacity(w.area_id):return
         offset=area.offset+8+count*7
-        raw=objects[self.selected] if self.selected>=0 else bytes(w.project.get(("object",offset,i)) for i in range(7))
-        changes={( "object",offset,i):(w.project.get(("object",offset,i)),v) for i,v in enumerate(raw)}
+        raw=objects[self.selected] if self.selected>=0 else bytes(w.project.get(w.project.object_key(w.area_id,count,i)) for i in range(7))
+        changes={w.project.object_key(w.area_id,count,i):(w.project.get(w.project.object_key(w.area_id,count,i)),v) for i,v in enumerate(raw)}
         changes[("object_count",area.offset,0)]=(count,count+1)
         w.commit_changes(changes,"Append object copy");self.list.setCurrentRow(count)

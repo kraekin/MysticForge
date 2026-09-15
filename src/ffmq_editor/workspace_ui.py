@@ -18,6 +18,9 @@ def tool_icon(kind):
     elif kind=='Entrances':p.drawRect(5,2,13,20);p.drawLine(1,12,14,12);p.drawLine(10,8,14,12);p.drawLine(10,16,14,12)
     elif kind=='Overworld routes':
         p.drawLine(5,6,18,6);p.drawLine(18,6,18,18);p.drawEllipse(2,3,6,6);p.drawEllipse(15,15,6,6)
+    elif kind=='Artwork':
+        p.drawRect(2,2,20,20);p.drawEllipse(5,5,4,4)
+        p.drawPolyline(QPolygonF([QPointF(3,20),QPointF(10,12),QPointF(14,16),QPointF(18,10),QPointF(22,16)]))
     elif kind=='Eyedropper':p.drawLine(5,19,18,6);p.drawLine(14,4,21,11);p.drawEllipse(2,18,4,4)
     else:
         p.drawLine(3,12,21,12);p.drawLine(12,3,12,21)
@@ -31,7 +34,7 @@ def add_tool_buttons(w,bar):
            ('Move selection','Move','Move selected terrain','M'),('Eyedropper','Pick','Pick a tile and map pass from the canvas','I'),
            ('Pan','Pan','Drag to pan the map','H'),('Objects','Objects','Select or move NPCs, chests and encounters','O'),
            ('Entrances','Entrances','Select an entrance marker and inspect its destination','E'),
-           ('Overworld routes','Routes','Select overworld route nodes; switches to the overworld','R')]
+           ('Overworld routes','Routes','Select overworld route nodes; switches to the overworld','R'),('Artwork','Artwork','Place or drag overworld landmark artwork','A')]
     for name,label,tip,key in tools:
         if name in ('Objects','Pan'):bar.addSeparator()
         action=QAction(tool_icon(name),label,w);action.setCheckable(True);action.setShortcut(key)
@@ -54,10 +57,8 @@ def view_controls(w,layers):
     w.action(w.view_menu,'Map details…',lambda:w.show_map_details())
 
 def version_name(w,area_id):
-    if area_id==24:return 'Frozen · Aquaria'
-    if area_id==25:return 'Thawed · Aquaria'
-    area=w.rom.areas[area_id];members=w.rom.shared_areas(area.layout_id)
-    return f'Configuration {members.index(area_id)+1} · {len(w.project.objects(area_id))} objects · area ${area_id:02X}'
+    from .map_setups import info
+    return info(w.project,area_id)['name']
 
 class PanelHandle:
     """Keep source-inspector navigation compatible with the contextual stack."""
@@ -80,10 +81,20 @@ def organize_panels(w):
     def selected(index):
         w.panel_stack.setCurrentIndex(index)
         name=w.panel_selector.currentText()
-        tool={'Tiles':'Pencil','Objects':'Objects','Entrances':'Entrances','Routes':'Overworld routes','Tile behavior':'Tile behavior'}.get(name)
+        tool={'Artwork':'Artwork','Tiles':'Pencil','Objects':'Objects','Entrances':'Entrances','Routes':'Overworld routes','Tile behavior':'Tile behavior'}.get(name)
         if tool:w.tool.setCurrentText(tool)
     w.panel_selector.currentIndexChanged.connect(selected)
     old=w.state_dock;widget=old.widget();widget.setParent(None);w.removeDockWidget(old);old.hide();old.deleteLater()
     w.state_dock=QDialog(w);w.state_dock.setWindowTitle('Map details · preview flags & source');w.state_dock.resize(900,520)
     QVBoxLayout(w.state_dock).addWidget(widget)
     w.resizeDocks([w.inspector_dock],[340],Qt.Orientation.Horizontal)
+
+
+def ordered_map_areas(rom):
+    """Keep ROM progression order, but show sibling A/B layouts alphabetically."""
+    def family(area):
+        name=area.name
+        return name[:-2] if name.endswith((' A',' B')) else name
+    first={}
+    for area in rom.areas:first.setdefault(family(area),area.id)
+    return sorted(rom.areas,key=lambda a:(first[family(a)],a.name,a.id))

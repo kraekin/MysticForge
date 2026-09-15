@@ -23,9 +23,9 @@ LAYOUT_NAMES = (
 class FormatError(ValueError):
     pass
 
-def pc(address: int) -> int:
+def pc(address: int, *, expanded=False) -> int:
     bank, offset = address >> 16, address & 0xFFFF
-    if not 0 <= bank <= 15 or offset < 0x8000:
+    if not 0 <= bank <= (31 if expanded else 15) or offset < 0x8000:
         raise FormatError(f"Address ${address:06X} is outside the supported ROM mapping")
     return bank * 0x8000 + offset - 0x8000
 
@@ -168,6 +168,7 @@ class Area:
     offset: int
     header: bytes
     objects: tuple[bytes, ...]
+    title: str | None = None
 
     @property
     def layout_id(self):
@@ -179,7 +180,7 @@ class Area:
 
     @property
     def name(self):
-        return LAYOUT_NAMES[self.layout_id]
+        return self.title or LAYOUT_NAMES[self.layout_id]
 
 @dataclass(frozen=True)
 class MapChange:
