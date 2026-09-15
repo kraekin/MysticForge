@@ -26,11 +26,10 @@
 
    Some stuff might be worded weird or named strangely or whatever due to AI, I do plan on going through soon and cleaning
    up the wording, and menu items and other stuff.
-
+<img width="919" height="676" alt="python3 13_feTETxiuW8" src="https://github.com/user-attachments/assets/e23b1ab3-c2cb-4d5d-8089-90ca88619719" />
+<img width="919" height="676" alt="python3 13_eJvqFErDuI" src="https://github.com/user-attachments/assets/c42836d7-1b59-4604-a3be-fbe7a66e3f3d" />
+<img width="919" height="676" alt="python3 13_3L5T0vcctU" src="https://github.com/user-attachments/assets/0de1e1fe-c745-44e8-b4ba-72f368666844" />
 <img width="858" height="705" alt="python3 13_4ae2oH4yPe" src="https://github.com/user-attachments/assets/e3763ade-c00c-4bd2-a3e6-5d6317df5e66" />
 <img width="658" height="495" alt="python3 13_o0fKjbsPvF" src="https://github.com/user-attachments/assets/0e00d79d-e77c-4aa0-8050-7f5e17a1d32a" />
 <img width="658" height="495" alt="python3 13_Per5WmDV8M" src="https://github.com/user-attachments/assets/ee266d6b-53f2-4a87-a1a2-15f26d34ff0c" />
-<img width="919" height="676" alt="python3 13_3L5T0vcctU" src="https://github.com/user-attachments/assets/0de1e1fe-c745-44e8-b4ba-72f368666844" />
-<img width="919" height="676" alt="python3 13_eJvqFErDuI" src="https://github.com/user-attachments/assets/c42836d7-1b59-4604-a3be-fbe7a66e3f3d" />
-<img width="919" height="676" alt="python3 13_feTETxiuW8" src="https://github.com/user-attachments/assets/e23b1ab3-c2cb-4d5d-8089-90ca88619719" />
 <img width="858" height="705" alt="python3 13_tdeLwsMKAE" src="https://github.com/user-attachments/assets/bea69767-b645-49fc-b914-df99dfcf989c" />
