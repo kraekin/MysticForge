@@ -1,0 +1,282 @@
+{
+  "rom_sha256": "6151389f33ce2e53db3cd99592440c0020f5f4668f581ce3bd615bc92077f255",
+  "scope": "Source-listed JSL calls in cached banks 00, 01, 02, 0B, 0C; no raw-ROM opcode scan. Other native patterns and uncached banks remain unaudited.",
+  "helpers": {
+    "base": "$0EA8",
+    "start": 38752,
+    "bytes": "0bf4a80e2b224e97002b6b0bf4a80e2b225497002b6b0bf4a80e2b225a97002b1a3a6b"
+  },
+  "calls": [
+    {
+      "address": 42346,
+      "start": 42346,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\src\\asm\\banks\\bank_00.asm",
+      "source_address": 42346,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 42361,
+      "start": 42361,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\src\\asm\\banks\\bank_00.asm",
+      "source_address": 42361,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 42916,
+      "start": 42916,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\src\\asm\\banks\\bank_00.asm",
+      "source_address": 42916,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 44713,
+      "start": 44713,
+      "bytes": "22609700",
+      "flag": null,
+      "action": "Set",
+      "source": "research\\upstream\\src\\asm\\banks\\bank_00.asm",
+      "source_address": 44713,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 44750,
+      "start": 44750,
+      "bytes": "226b9700",
+      "flag": null,
+      "action": "Clear",
+      "source": "research\\upstream\\src\\asm\\banks\\bank_00.asm",
+      "source_address": 44750,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 101291,
+      "start": 101291,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 101292,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 101564,
+      "start": 101562,
+      "bytes": "a9f522769700",
+      "flag": 245,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 101565,
+      "explanation": "Adjacent literal index $F5; valid when execution passes through this load."
+    },
+    {
+      "address": 107879,
+      "start": 107877,
+      "bytes": "a9f222769700",
+      "flag": 242,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 107880,
+      "explanation": "Adjacent literal index $F2; valid when execution passes through this load."
+    },
+    {
+      "address": 110781,
+      "start": 110781,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 110782,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 115465,
+      "start": 115462,
+      "bytes": "a9f50022609700",
+      "flag": 245,
+      "action": "Set",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 115466,
+      "explanation": "Adjacent literal index $F5; valid when execution passes through this load."
+    },
+    {
+      "address": 115480,
+      "start": 115477,
+      "bytes": "a9f500226b9700",
+      "flag": 245,
+      "action": "Clear",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 115481,
+      "explanation": "Adjacent literal index $F5; valid when execution passes through this load."
+    },
+    {
+      "address": 116825,
+      "start": 116825,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 116826,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 116939,
+      "start": 116939,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 116940,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 124626,
+      "start": 124626,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 124627,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 127446,
+      "start": 127446,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 127447,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 128168,
+      "start": 128166,
+      "bytes": "a90322769700",
+      "flag": 3,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 128169,
+      "explanation": "Adjacent literal index $03; valid when execution passes through this load."
+    },
+    {
+      "address": 128694,
+      "start": 128692,
+      "bytes": "a936226b9700",
+      "flag": 54,
+      "action": "Clear",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 128695,
+      "explanation": "Adjacent literal index $36; valid when execution passes through this load."
+    },
+    {
+      "address": 129018,
+      "start": 129016,
+      "bytes": "a90322609700",
+      "flag": 3,
+      "action": "Set",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_01.asm",
+      "source_address": 129019,
+      "explanation": "Adjacent literal index $03; valid when execution passes through this load."
+    },
+    {
+      "address": 164161,
+      "start": 164159,
+      "bytes": "a97a22769700",
+      "flag": 122,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_02.asm",
+      "source_address": 164161,
+      "explanation": "Adjacent literal index $7A; valid when execution passes through this load."
+    },
+    {
+      "address": 166372,
+      "start": 166372,
+      "bytes": "226b9700",
+      "flag": null,
+      "action": "Clear",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_02.asm",
+      "source_address": 166372,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 166381,
+      "start": 166381,
+      "bytes": "22609700",
+      "flag": null,
+      "action": "Set",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_02.asm",
+      "source_address": 166381,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    },
+    {
+      "address": 754022,
+      "start": 754020,
+      "bytes": "a9f2226b9700",
+      "flag": 242,
+      "action": "Clear",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0B.asm",
+      "source_address": 754022,
+      "explanation": "Adjacent literal index $F2; valid when execution passes through this load."
+    },
+    {
+      "address": 754050,
+      "start": 754048,
+      "bytes": "a9f322769700",
+      "flag": 243,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0B.asm",
+      "source_address": 754050,
+      "explanation": "Adjacent literal index $F3; valid when execution passes through this load."
+    },
+    {
+      "address": 755082,
+      "start": 755080,
+      "bytes": "a90322769700",
+      "flag": 3,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0B.asm",
+      "source_address": 755082,
+      "explanation": "Adjacent literal index $03; valid when execution passes through this load."
+    },
+    {
+      "address": 755093,
+      "start": 755091,
+      "bytes": "a90222769700",
+      "flag": 2,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0B.asm",
+      "source_address": 755093,
+      "explanation": "Adjacent literal index $02; valid when execution passes through this load."
+    },
+    {
+      "address": 755104,
+      "start": 755102,
+      "bytes": "a90122769700",
+      "flag": 1,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0B.asm",
+      "source_address": 755104,
+      "explanation": "Adjacent literal index $01; valid when execution passes through this load."
+    },
+    {
+      "address": 819315,
+      "start": 819315,
+      "bytes": "22769700",
+      "flag": null,
+      "action": "Check",
+      "source": "research\\upstream\\~historical\\diztinguish-disassembly\\diztinguish\\Disassembly\\bank_0C.asm",
+      "source_address": 819315,
+      "explanation": "Flag index comes from earlier runtime computation; not assigned to a numbered flag."
+    }
+  ],
+  "unmatched": []
+}
