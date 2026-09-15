@@ -969,6 +969,8 @@ class MainWindow(QMainWindow):
             path=Path(name)
         try:
             self.project.save(path);self.stack.setClean();self.update_title()
+            from .session import remember_project
+            remember_project(self.project)
             if getattr(self,'_recovery_project',None) is self.project:
                 try:self._recovery_path.unlink(missing_ok=True)
                 except OSError:pass
@@ -1021,6 +1023,9 @@ class MainWindow(QMainWindow):
             if recovery:self.stack.resetClean()
             self.areas.blockSignals(True);self.select_area(self.area_id);self.areas.blockSignals(False)
             self.preset.setCurrentText("Custom");self.refresh();self.fit_views()
+            if not recovery:
+                from .session import remember_project
+                remember_project(project)
         except (OSError,ValueError,TypeError) as error:self.error(error)
 
     def autosave(self):
