@@ -1,4 +1,6 @@
-# MysticForge 0.1-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+# MysticForge 0.2-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+
+updated to version 0.2 but have not added a nuitka build for it yet, just download and run the python script, or wait and ill upload the release soon
 
 I have tested everything I could so far, but have not gone through the game completely to verify that everything works as intended. As such, there may be bugs, issues, or game breaking shit that happens.
 
