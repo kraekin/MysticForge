@@ -24,4 +24,4 @@
    The event and script stuff is not complete, and is currently read only for reference. Editing will come in the future.
 
    Some stuff might be worded weird or named strangely or whatever due to AI, I do plan on going through soon and cleaning
-   up the wording, and menu items and other stuff soon. 
+   up the wording, and menu items and other stuff.
