@@ -1,4 +1,11 @@
-# MysticForge 0.1-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+# MysticForge 0.2-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
+
+
+<img width="908" height="703" alt="python3 13_AG2UvXltb1" src="https://github.com/user-attachments/assets/506db728-769a-4cbb-b1b6-ee6ede5d339c" />
+
+updated to version 0.2 but have not added a nuitka build for it yet, just download and run the python script, or wait and ill upload the release soon
+
+Targets the 1.0 USA release of the rom, but has an option to fix the life spell bug. I will look at adding 1.1 support in the future. 
 
 I have tested everything I could so far, but have not gone through the game completely to verify that everything works as intended. As such, there may be bugs, issues, or game breaking shit that happens.
 
@@ -8,11 +15,9 @@ Thanks to https://github.com/wildham0/FFMQRando/ for some information used in de
 
 Also thanks to https://github.com/TheAnsarya/ffmq-info This helped a ton, especially the assembly code, although some stuff was wrong or mislabeled or such, AI was able to figure out what was wrong, and compared what was correct against the 1.0 rom.
 
-Finally, this does target the USA 1.0 version of the rom. The editor does have an option to fix the life spell bug that was fixed in 1.1. Support for 1.1 may be added at a future date, but for now, especially since you can patch the bug with this editor now, its not a priority.
-
 No license is provided, but you can do whatever you want with this software. Modify it, sell it, claim it as your own. I really don't care lol. Just don't blame me if it breaks your rom or your save file or whatever. I will try to fix bugs and update the editor until it is fully complete but I do not make any guarantees.
 
-The event and script stuff is not complete, and is currently read only for reference. Editing will come in the future.
+The event and script stuff is partially complete, some editing is possible. 
 
 Some stuff might be worded weird or named strangely or whatever due to AI, I do plan on going through soon and cleaning up the wording, and menu items and other stuff.
 
@@ -20,18 +25,17 @@ Some stuff might be worded weird or named strangely or whatever due to AI, I do 
 
 <table>
   <tr>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/e23b1ab3-c2cb-4d5d-8089-90ca88619719" alt="python3 13_feTETxiuW8" /></td>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/c42836d7-1b59-4604-a3be-fbe7a66e3f3d" alt="python3 13_eJvqFErDuI" /></td>
+    <td width="50%"><img width="908" height="703" alt="python3 13_ZMsQe7Go1t" src="https://github.com/user-attachments/assets/9de2fb02-fd87-4a11-b4f0-0168cda2d5b1" /></td>
   </tr>
   <tr>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/0de1e1fe-c745-44e8-b4ba-72f368666844" alt="python3 13_3L5T0vcctU" /></td>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/0e00d79d-e77c-4aa0-8050-7f5e17a1d32a" alt="python3 13_o0fKjbsPvF" /></td>
+    <td width="50%"><img width="908" height="703" alt="python3 13_NxZWTNd2qV" src="https://github.com/user-attachments/assets/137426fb-6093-4a18-b3d7-c52b57d7b23a" /></td>
+    <td width="50%"><img width="908" height="703" alt="python3 13_z8lsgTS5IW" src="https://github.com/user-attachments/assets/c795abd0-185c-48ff-8226-432642c0c2df" />></td>
   </tr>
   <tr>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/ee266d6b-53f2-4a87-a1a2-15f26d34ff0c" alt="python3 13_Per5WmDV8M" /></td>
-    <td width="50%"><img src="https://github.com/user-attachments/assets/bea69767-b645-49fc-b914-df99dfcf989c" alt="python3 13_tdeLwsMKAE" /></td>
+    <td width="50%"><img width="1002" height="703" alt="python3 13_yuyuIdnUvD" src="https://github.com/user-attachments/assets/b1223955-467a-45a5-8635-33f95cd3a8ce" /></td>
+    <td width="50%"><img width="658" height="495" alt="python3 13_QqCRBzwFJp" src="https://github.com/user-attachments/assets/0c5ad72e-3067-4bb2-8d79-925c2e63a355" /></td>
   </tr>
   <tr>
-    <td colspan="2" align="center"><img src="https://github.com/user-attachments/assets/e3763ade-c00c-4bd2-a3e6-5d6317df5e66" alt="python3 13_4ae2oH4yPe" /></td>
+    <td colspan="2" align="center"><img width="1280" height="775" alt="python3 13_25Ysbl9l3Q" src="https://github.com/user-attachments/assets/75b540a3-5859-4d40-ba16-1c45494067c1" /></td>
   </tr>
 </table>
