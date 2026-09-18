@@ -1,7 +1,7 @@
 # MysticForge (Early Alpha)
 
 **A ROM editor for Final Fantasy Mystic Quest (SNES)**  
-*Current Version: 0.2 (September 18, 2026)*
+*Current Version: 0.2 (September, 2026)*
 
 > **Warning:** This is an early alpha release. Use at your own risk! Not everything is complete, and some features are currently read-only. Always keep backups of your ROM and save files.
 
