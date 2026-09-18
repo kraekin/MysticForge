@@ -6,7 +6,7 @@ Targets the 1.0 USA release of the rom, but has an option to fix the life spell 
 
 Sept 18, 2026:
 - Added a bunch of event stuff. You can now make new NPC's and give them their own dialogue, or even a whole event. Actions are currently limited, but some basics are there. Everyhing seems to work, might have some bugs. 
-- Variou other additions and fixes. just play around to see what is there. Make sure to keep backups and such so nothing breaks.
+- Various other additions and fixes. just play around to see what is there. Make sure to keep backups and such so nothing breaks.
 
 Known issues:
 New overworld locations cannot be named yet, they seem to take the name from the size template used for the map...I think, more research is needed.
@@ -17,7 +17,7 @@ New overworld locations cannot be named yet, they seem to take the name from the
 
 I have tested everything I could so far, but have not gone through the game completely to verify that everything works as intended. As such, there may be bugs, issues, or game breaking shit that happens.
 
-I know some people are going to hate it, but AI was used to assist in the development of this software. Without it this wouldn't exist. Ive always been surprised by the lack of tools for this game, and now that AI seems to be quite good at SNES assembly, reverse engineering, and can compare the code against the rom. I figured why not try it out to see what happens. Sure I could have dont a lot of this myself, but that would have taken months or longer due to work and life.
+I know some people are going to hate it, but AI was used to assist in the development of this software. Without it this wouldn't exist. Ive always been surprised by the lack of tools for this game, and now that AI seems to be quite good at SNES assembly, reverse engineering, and can compare the code against the rom. I figured why not try it out to see what happens. Sure I could have done a lot of this myself, but that would have taken months or longer due to work and life.
 
 Thanks to https://github.com/wildham0/FFMQRando/ for some information used in development
 
