@@ -1,4 +1,5 @@
 """Modeless palette for placing the game's landmark sprite pieces."""
+from .event_flags import flag_label
 import numpy as np
 from PySide6.QtCore import Qt,QSize
 from PySide6.QtGui import QIcon,QPixmap
@@ -40,7 +41,7 @@ class LandmarkEditor(QWidget):
  def refresh(self,*_):
   before=self.pieces.currentRow();self.pieces.blockSignals(True);self.pieces.clear()
   for i,(y,x,flag,tile,attr) in enumerate(records(self.w.project)):
-   self.pieces.addItem(QListWidgetItem(self.icons.get((tile,attr),QIcon()),f'{i+1} · ({x}, {y}) · '+('Always visible' if not flag else f'Flag ${flag:02X}')))
+   self.pieces.addItem(QListWidgetItem(self.icons.get((tile,attr),QIcon()),f'{i+1} · ({x}, {y}) · '+('Always visible' if not flag else flag_label(flag))))
   self.pieces.setCurrentRow(min(before,self.pieces.count()-1));self.pieces.blockSignals(False)
   self.feedback.setText(f'{self.pieces.count()} pieces. Additional pieces require expanded export. No screen region may contain more than 64 pieces, counting all states.')
  def selected(self,i):
@@ -100,3 +101,4 @@ def open_landmarks(w):
  w.landmark_editor.refresh()
  if w.tool.currentText()!='Artwork':w.tool.setCurrentText('Artwork')
  w.show_panel('Artwork')
+

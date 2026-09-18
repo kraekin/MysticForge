@@ -111,10 +111,10 @@ class Connections:
             prop=int(properties[cell&127,1])
             if prop&0xE0!=0x80:continue
             action=prop&31
-            if action>6:continue
+            if action not in (0,1,2,3,4,5,6,8):continue
             x,y=index%attrs.width,index//attrs.width
             value,source=records.get((x,y),(0,None))
-            label="Saved return (runtime position)" if action==3 else "Transition"
+            label="Saved return (runtime position)" if action==3 else "Script-controlled entrance" if action==8 else "Transition"
             if source is None and action!=3:label+=" · no local coordinate record"
             # The engine scans past pointer boundaries until a negative-Y
             # sentinel. Resolve that fallback only from actual ROM bytes.
@@ -131,6 +131,7 @@ class Connections:
                     if e['area']!=area_id:continue
                     rx,ry,rv=self.project.fixed('coordinate',coordinate_id(i))
                     if (rx,ry)==(x,y):action,value,source,label=0,rv,coordinate_id(i),'New entrance · private coordinate';break
-            result.append(Connection(x,y,action,value,self.destination(action,value),source,label))
+            if action==8:label+=f" · entry event ${value:02X}; scripts may require items or flags"
+            result.append(Connection(x,y,action,value,self.destination(action,value,state.flags),source,label))
         return tuple(result)
 

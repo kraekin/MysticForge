@@ -1,4 +1,5 @@
 """Standalone, read-only snapshots of selected objects and connections."""
+from .event_flags import flag_label
 from .event_editing import view_rom
 from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QTabWidget,QPlainTextEdit,QTreeWidget,QTreeWidgetItem,QPushButton,QHBoxLayout,QTextBrowser
 from html import escape
@@ -43,7 +44,7 @@ class EventInspector(QDialog):
             self.viewer=EventFlowView(window,entry,extent);self.flow=self.viewer.tree;self.tabs.insertTab(1,self.viewer,'Event flow')
             self.viewer.entryChanged.connect(self.update_raw)
             try:
-                length=min(128,0x10000-(entry&0xffff),len(view_rom(window).data)-pc(entry));raw=read(view_rom(window).data,pc(entry),length)
+                length=min(128,0x10000-(entry&0xffff),len(view_rom(window).data)-pc(entry,expanded=True));raw=read(view_rom(window).data,pc(entry,expanded=True),length)
                 self.raw.setPlainText("Context bytes only — this is not a verified script length.\n\n"+'\n'.join(f"{entry+i:06X}  {raw[i:i+16].hex(' ').upper()}" for i in range(0,len(raw),16)))
             except ValueError:self.raw.setPlainText("Invalid entry address")
             self.update_raw(entry)
@@ -95,8 +96,8 @@ class EventInspector(QDialog):
         try:
             extent=dict(fragments(view_rom(self.window))).get(entry)
             if self.viewer.extent is not None:extent=self.viewer.extent
-            length=min(extent if extent is not None else 128,0x10000-(entry&0xffff),len(view_rom(self.window).data)-pc(entry))
-            raw=read(view_rom(self.window).data,pc(entry),length)
+            length=min(extent if extent is not None else 128,0x10000-(entry&0xffff),len(view_rom(self.window).data)-pc(entry,expanded=True))
+            raw=read(view_rom(self.window).data,pc(entry,expanded=True),length)
             self.raw.setPlainText(f'Current event ${entry:06X}. '+('Bounded text/event extent.' if extent is not None else 'Context bytes only; not a verified script extent.')+'\n\n'+'\n'.join(f'{entry+i:06X}  {raw[i:i+16].hex(" ").upper()}' for i in range(0,len(raw),16)))
         except ValueError:self.raw.setPlainText('Invalid event address')
 
@@ -155,7 +156,7 @@ def open_connection(window):
     if key is not None:
         location=f'Expanded destination ${e.value:02X}' if key>=0x210000 else f'Shared destination record at ROM ${key:06X}'
         text+='\n'+location+': '+window.project.fixed('destination',key).hex(' ').upper()+'\nOther entrances may use the same record.\n'
-    text+='\nPreview flags: '+', '.join(f'${f:02X}' for f in sorted(window.project.flags))
+    text+='\nPreview flags: '+', '.join(flag_label(f) for f in sorted(window.project.flags))
     show(window,"Entrance / exit inspector",text,entry)
 
 def show(window,title,text,entry,behavior=None):
@@ -164,3 +165,4 @@ def show(window,title,text,entry,behavior=None):
     if old is not None:old.close();old.deleteLater()
     window.event_inspector=EventInspector(window,title,text,entry,behavior)
     window.event_inspector.show()
+

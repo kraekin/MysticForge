@@ -1,4 +1,5 @@
 """Inspect shared terrain and conditional replacements without changing preview flags."""
+from .event_flags import flag_label
 from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QTreeWidget,QTreeWidgetItem,QPushButton
 from .workspace_ui import version_name
 
@@ -14,7 +15,7 @@ def show_terrain_uses(w):
         for action in w.rom.area_actions[area_id]:
             if action.opcode!=0x22:continue
             patch=w.rom.changes[action.value]
-            details.append(f'Flag ${action.flag:02X}: change ${patch.id:02X}, ({patch.x},{patch.y}) to ({patch.x+patch.width-1},{patch.y+patch.height-1})')
+            details.append(f'{flag_label(action.flag)}: change ${patch.id:02X}, ({patch.x},{patch.y}) to ({patch.x+patch.width-1},{patch.y+patch.height-1})')
         item=QTreeWidgetItem([f'{area.name} / {version_name(w,area_id)}', '; '.join(details) or 'No conditional map-change rectangles recorded'])
         item.setData(0,256,area_id)
         for col in range(2):item.setToolTip(col,item.text(col))
@@ -27,3 +28,4 @@ def show_terrain_uses(w):
     tree.itemDoubleClicked.connect(lambda *_:visit())
     if tree.topLevelItemCount():tree.setCurrentItem(tree.topLevelItem(0))
     w.terrain_uses_dialog=dialog;dialog.show()
+

@@ -53,7 +53,7 @@ def decode(rom,entry,limit=256,follow_calls=True,extent=None):
         if (address,bound,settings) in seen or address==bound:continue
         seen.add((address,bound,settings))
         try:
-            offset=pc(address);op=rom.data[offset]
+            offset=pc(address,expanded=True);op=rom.data[offset]
             size=1;description="";targets=[];stop=False;known=True
             command=decode_command(rom,address,context)
             if command is not None:
@@ -190,7 +190,7 @@ def decode(rom,entry,limit=256,follow_calls=True,extent=None):
             if not stop and address+size!=bound:targets.append(("next",address+size))
             valid=[]
             for label,target in targets:
-                try:read(rom.data,pc(target),1);valid.append((label,target))
+                try:read(rom.data,pc(target,expanded=True),1);valid.append((label,target))
                 except ValueError:description+=f"; invalid {label} target ${target:06X}";known=False
             note=interaction_note(raw,context.get(0x9e))
             if note:description+=' · '+note
@@ -232,6 +232,7 @@ def world_entry(rom,value):
 def npc_entry(rom,value):
     # $03D636..$03D72D holds 124 pointers. Higher IDs read script bytes,
     # not another verified entry. Some hidden/noninteractive objects use them.
+    if value in getattr(rom,"private_npc_entries",{}):return rom.private_npc_entries[value]
     if not 0<=value<124:return None
     pointer=u16(rom.data,pc(0x03D636)+value*2)
     return 0x030000|pointer if pointer>=0x8000 else None

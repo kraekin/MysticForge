@@ -2,7 +2,7 @@
 from dataclasses import dataclass,field
 from pathlib import Path
 import json
-from .event_flags import NAMES,flag_label
+from .event_flags import NAMES,BEHAVIOR_NAMES,KNOWN_NAMES,flag_label
 from .field_actions import field_action
 from .rom import pc,u16
 from .world import gate,DIRECTIONS
@@ -24,15 +24,12 @@ class Dossier:
 
     @property
     def status(self):
-        return 'Verified story meaning' if self.flag in NAMES else 'Verified uses; story meaning unknown' if self.evidence else 'Unknown — no indexed uses'
+        return 'Verified story meaning' if self.flag in NAMES else 'Named in flag catalogue' if bool(BEHAVIOR_NAMES.get(self.flag)) else 'Verified uses; story meaning unknown' if self.evidence else 'Unknown — no indexed uses'
 
     @property
     def overview(self):
         if self.flag in NAMES:return NAMES[self.flag]+'. This is a verified vanilla restoration flag.'
-        if self.flag==0x13:return 'Selects between the two Level Forest entrance variants. The broader story meaning is not established.'
-        if self.flag==4:return 'Selects between Spencer’s Cave and a different cave area for world entry $30. This is a verified entrance use, not a complete story-event name.'
-        if self.flag==0xf2:return 'The monster-graphics loader checks this flag before loading the alternate graphics sheet for eligible map descriptors. It has other uses too; this is not a complete story-event name.'
-        if self.flag==0xf5:return 'Native player actions set or clear this flag while refreshing the player pose. The complete gameplay meaning of the pose is not named.'
+        if bool(BEHAVIOR_NAMES.get(self.flag)):return BEHAVIOR_NAMES[self.flag]+'. Name supplied by event_flags.py; indexed evidence below records observed uses separately.'
         if not self.evidence:return 'No use was found in the audited sources. This does not prove the flag is unused.'
         counts={kind:sum(e.kind==kind for e in self.evidence) for kind in ('Event','Object','Map','Route','Entrance','Native')}
         roles=[]
@@ -51,6 +48,7 @@ class Dossier:
     @property
     def next_step(self):
         if self.flag in NAMES:return 'The restoration meaning is established. Inspect individual sources to see which maps, objects and routes respond to it.'
+        if bool(BEHAVIOR_NAMES.get(self.flag)):return 'Inspect the indexed sources to see where this named flag is checked or changed. The catalogue name does not imply that every runtime use has been audited.'
         writers=[e for e in self.evidence if e.action in ('Set','Clear')]
         if writers:return 'Start with '+writers[0].explanation+' ('+writers[0].source+'). Follow its callers and compare nearby dialogue with the effects listed here before assigning a story name.'
         if self.evidence:return 'There is no explicit numbered Set/Clear in the indexed sources. Trace runtime-indexed callers and other native writes before assuming when this flag changes. Do not infer a story event from its initial value.'
@@ -119,4 +117,4 @@ class FlagAudit:
     def report(self):
         from dataclasses import asdict
         return {'notes':self.notes,'unresolved_native_callers':self.unresolved,'flags':[
-            dict(asdict(d),status=d.status,overview=d.overview,next_step=d.next_step) for d in self.dossiers]}
+            dict(asdict(d),name=KNOWN_NAMES.get(d.flag),label=flag_label(d.flag),name_source='event_flags.py:NAMES' if d.flag in NAMES else 'event_flags.py:BEHAVIOR_NAMES' if bool(BEHAVIOR_NAMES.get(d.flag)) else None,status=d.status,overview=d.overview,next_step=d.next_step) for d in self.dossiers]}

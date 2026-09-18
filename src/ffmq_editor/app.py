@@ -28,6 +28,7 @@
    up the wording, and menu items and other stuff soon. 
 
 """
+from .event_flags import flag_label
 from pathlib import Path
 import json
 import sys
@@ -190,6 +191,7 @@ class Canvas(QGraphicsView):
                         colors=("#62ccad","#75a9ff","#dfba64","#d395e8","#7dd7e4","#ea9e78","#a6b86c","#f45b70")
                         color=QColor(colors[value&7]);color.setAlpha(100)
                     else:color=QColor(50,210,120,95) if terrain_passage(value,self.traversal_overlay-2) else QColor(245,65,80,110)
+                    if self.traversal_overlay!=1 and (value&0xf0 or int(self.properties[self.cells[y*self.map_width+x]&127,1])!=0) and terrain_passage(value,self.traversal_overlay-2):color=QColor(240,175,40,110)
                     painter.fillRect(x*16,y*16,16,16,color)
                     if self.traversal_overlay==1:painter.drawText(x*16+4,y*16+12,str(value&7))
         for i,obj in enumerate(self.objects):
@@ -497,16 +499,16 @@ class MainWindow(QMainWindow):
         self.refresh();self.fit_views()
 
     def tool_changed(self,name):
+        if name in ("Artwork","Overworld routes") and self.rom.areas[self.area_id].layout_id!=0:
+            self.tool.setCurrentText("Pencil");return
         self.canvas.art_preview=None
         self.canvas.object_preview=None
         if name=='Objects' and self.rom.areas[self.area_id].layout_id and not self.project.objects(self.area_id):self.object_editor.mode.setCurrentIndex(1)
         if name=="Artwork":
-            if self.rom.areas[self.area_id].layout_id!=0:self.select_area(0)
             from .landmark_editor import open_landmarks
             open_landmarks(self)
         if name!="Entrances" and hasattr(self,"connection_panel"):self.connection_panel.move_button.setChecked(False)
         if name=="Overworld routes":
-            if self.rom.areas[self.area_id].layout_id!=0:self.select_area(0)
             self.world_dock.show();self.world_dock.raise_()
         if name=="Rewards & encounters":self.content_dock.show();self.content_dock.raise_()
         if name=="Tile behavior":self.property_dock.show();self.property_dock.raise_()
@@ -515,7 +517,9 @@ class MainWindow(QMainWindow):
         if hasattr(self,'panel_stack'):
             panel={'Artwork':'Artwork','Objects':'Objects','Entrances':'Entrances','Overworld routes':'Routes','Tile behavior':'Tile behavior','Rewards & encounters':'Rewards & encounters'}.get(name,'Tiles')
             self.show_panel(panel)
-        if name=='Entrances':self.show_connections.setChecked(True)
+        self.show_connections.setChecked(name=='Entrances')
+        if name!='Entrances':
+            self.arrival=None;self._drag_entrance=None;self.canvas.arrival=None
         if name=="Objects":self.object_dock.show();self.object_dock.raise_()
         if hasattr(self,"render_timer"):self.refresh_map()
 
@@ -611,6 +615,14 @@ class MainWindow(QMainWindow):
         self._refreshing=True
         try:
             area=self.rom.areas[self.area_id];attrs=self.rom.attributes[area.attributes_id]
+            is_world=area.layout_id==0
+            for tool in ('Artwork','Overworld routes'):
+                self.tool_actions[tool].setEnabled(is_world)
+                self.tool.model().item(self.tool.findText(tool)).setEnabled(is_world)
+            for panel in ('Artwork','Routes'):
+                index=self.panel_selector.findText(panel)
+                if index>=0:self.panel_selector.model().item(index).setEnabled(is_world)
+            if not is_world and self.tool.currentText() in ('Artwork','Overworld routes'):self.tool.setCurrentText('Pencil')
             self.heading.setText(area.name)
             from .workspace_ui import version_name
             members=self.rom.shared_areas(area.layout_id)
@@ -635,7 +647,7 @@ class MainWindow(QMainWindow):
             self.actions_table.setRowCount(len(actions))
             for row,action in enumerate(actions):
                 enabled=action.flag in self.project.flags
-                check=QTableWidgetItem(f"${action.flag:02X}");check.setData(Qt.ItemDataRole.UserRole,action.flag)
+                check=QTableWidgetItem(flag_label(action.flag));check.setData(Qt.ItemDataRole.UserRole,action.flag)
                 check.setFlags(check.flags()|Qt.ItemFlag.ItemIsUserCheckable);check.setCheckState(Qt.CheckState.Checked if enabled else Qt.CheckState.Unchecked)
                 self.actions_table.setItem(row,0,check)
                 names={0x22:"Map change",0x23:"Metatile replacement",0x24:"Palette",0x28:"NPC group"}
@@ -737,18 +749,22 @@ class MainWindow(QMainWindow):
         self.connections.project=self.project
         entries=self.connections.for_area(self.area_id,state,props)
         self.connection_panel.update_entries(entries)
-        self.canvas.connections=entries if self.show_connections.isChecked() else ()
-        self.canvas.arrival=self.arrival[1:] if self.arrival and self.arrival[0]==self.area_id and self.show_connections.isChecked() else None
+        self.canvas.connections=entries if self.show_connections.isChecked() and self.tool.currentText()=="Entrances" else ()
+        self.canvas.arrival=self.arrival[1:] if self.arrival and self.arrival[0]==self.area_id and self.show_connections.isChecked() and self.tool.currentText()=="Entrances" else None
         self.canvas.selection_rect=None
         selected=self.object_editor.selected
         if self.tool.currentText()=="Objects" and 0<=selected<len(self.project.objects(self.area_id)):
             obj=self.project.objects(self.area_id)[selected]
             self.canvas.selection_rect=QRectF((obj[3]&63)*16,(obj[2]&63)*16,16,16)
+        elif self.tool.currentText()=="Entrances" and self.connection_panel.entry() is not None:
+            entry=self.connection_panel.entry();self.canvas.selection_rect=QRectF(entry.x*16,entry.y*16,16,16)
         elif self.selection.rect:
             x,y,width,height=self.selection.rect
             self.canvas.selection_rect=QRectF(x*16,y*16,width*16,height*16)
         self.canvas.properties=props;self.canvas.cells=bytes(state.cells[int(i)] for i in self._terrain_sources);self.canvas.map_width=attrs.width
-        self.canvas.traversal_overlay=self.property_editor.overlay.currentIndex()
+        self.canvas.traversal_overlay=self.property_editor.overlay.currentIndex() if self.tool.currentText()=="Tile behavior" else 0
+        if self.tool.currentText()=="Tile behavior" and self.canvas.traversal_overlay:
+            self.canvas.objects=tuple(o for o in self.project.objects(self.area_id) if o[0] in self.project.flags)
         from .world_expansion import routes as world_routes,nodes as world_nodes,route_data
         self.canvas.world_paths=();self.canvas.world_nodes=()
         if area.layout_id==0 and self.world_editor.overlay.isChecked() and self.tool.currentText()=="Overworld routes":
@@ -821,7 +837,8 @@ class MainWindow(QMainWindow):
             hits=[i for i,e in enumerate(entries) if (e.x,e.y)==(x,y)]
             if hits:
                 self.connection_panel.selecting_on_canvas=True
-                try:self.connection_panel.table.selectRow(hits[0])
+                try:
+                    self.connection_panel.table.selectRow(hits[0]);self.connection_panel.locate()
                 finally:self.connection_panel.selecting_on_canvas=False
                 self.show_panel('Entrances')
                 if not pick:
@@ -836,10 +853,7 @@ class MainWindow(QMainWindow):
                 if nearby:self.world_editor.node.setValue(min(nearby,key=lambda n:abs(node_position(self.project,n)[0]-x)+abs(node_position(self.project,n)[1]-y)))
             return
         if self.tool.currentText()=="Tile behavior":
-            sources=list(range(128))
-            for dest,source in self._state.remaps:sources[dest]=sources[source]
-            self.property_editor.tile.setValue(sources[self._state.cells[self.terrain_source(x,y)]&127])
-            self.property_editor.refresh();return
+            self.property_editor.click(x,y,pick);return
         if not pick and self.tool.currentText() in ("Select","Stamp","Move selection"):
             try:self.selection.begin(x,y)
             except ValueError as error:self.error(error)
@@ -874,6 +888,12 @@ class MainWindow(QMainWindow):
         elif self.tool.currentText()=="Pencil":self.paint_cell(x,y)
 
     def drag_stroke(self,x,y):
+        if self.tool.currentText()=="Tile behavior":
+            if self.property_editor.mode.currentIndex() in (2,4):
+                x0,y0=getattr(self,'_last_cell',(x,y));steps=max(abs(x-x0),abs(y-y0),1)
+                for step in range(1,steps+1):self.property_editor.click(round(x0+(x-x0)*step/steps),round(y0+(y-y0)*step/steps),drag=True)
+                self._last_cell=(x,y)
+            return
         if self.tool.currentText()=="Artwork":
             self.landmark_editor.move_map(x,y);return
         if self.tool.currentText()=="Entrances":
@@ -1099,4 +1119,5 @@ def main():
     app.exec()
 
 if __name__=="__main__":main()
+
 

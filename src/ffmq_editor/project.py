@@ -37,6 +37,7 @@ class Project:
         self.newmaps={}
         self.sprite_sets={}
         self.event_edits={}
+        self.private_dialogues={}
         self.setup_labels={}
         self.edits: dict[tuple[str, int, int], int] = {}
         self.path: Path | None = None
@@ -80,6 +81,8 @@ class Project:
     def validate_expansion(self):
         from .event_editing import validate as validate_events
         validate_events(self)
+        from .private_dialogue import validate as validate_dialogues
+        validate_dialogues(self)
         from .new_maps import sync_catalog,validate as validate_maps
         sync_catalog(self);validate_maps(self)
         from .map_setups import validate as validate_setups
@@ -260,7 +263,8 @@ class Project:
         self.validate_expansion()
         from .expanded_content import encode
         from .world_expansion import encode as encode_world
-        return {"format": "ffmq-map-project", "version": 9,
+        return {"format": "ffmq-map-project", "version": 12,
+                "private_dialogues":[[a,r] for a,r in sorted(self.private_dialogues.items())],
                 "setup_labels":[[a,r] for a,r in sorted(self.setup_labels.items())],
                 "event_edits":[[a,r] for a,r in sorted(self.event_edits.items())], "base_sha256": BASE_SHA256,
                 "content":encode(self),
@@ -286,41 +290,46 @@ class Project:
         if path.stat().st_size > 16*1024*1024:
             raise FormatError("Project file is too large")
         document = json.loads(path.read_text())
-        if document.get("format") != "ffmq-map-project" or document.get("version") not in (1,2,3,4,5,6,7,8,9) or document.get("base_sha256") != BASE_SHA256:
+        if document.get("format") != "ffmq-map-project" or document.get("version") not in (1,2,3,4,5,6,7,8,9,10,11,12) or document.get("base_sha256") != BASE_SHA256:
             raise FormatError("Unsupported project or base ROM")
         project = cls(rom)
+        try:
+            for a,r in document.get("private_dialogues",[]):
+                if type(a) is not int or a in project.private_dialogues:raise ValueError("Duplicate or invalid dialogue ID")
+                project.private_dialogues[a]=r
+        except (TypeError,ValueError) as e:raise FormatError("Invalid independent dialogue") from e
         try:
             for a,r in document.get("setup_labels",[]):
                 if a in project.setup_labels:raise ValueError("Duplicate setup label")
                 project.setup_labels[a]=r
         except (TypeError,ValueError) as e:raise FormatError("Invalid map setup labels") from e
-        if document.get("version")==9:
+        if document.get("version") in (9,10,11,12):
             try:
                 for a,r in document.get("event_edits",[]):
                     if a in project.event_edits:raise ValueError("Duplicate event edit")
                     project.event_edits[a]=r
             except (TypeError,ValueError) as e:raise FormatError("Invalid event edits") from e
-        if document.get("version") in (8,9):
+        if document.get("version") in (8,9,10,11,12):
             try:
                 for i,c in document.get("sprite_sets",[]):
                     if i in project.sprite_sets:raise ValueError('Duplicate sprite set')
                     project.sprite_sets[i]={"labels":c.get("labels",[f"Imported preset {n+1}" for n in range(len(c["presets"]))]),"base":c["base"],"data":bytes.fromhex(c["data"]),"presets":[bytes.fromhex(o) for o in c["presets"]]}
             except (KeyError,TypeError,ValueError) as e:raise FormatError('Invalid private sprite sets') from e
-        if document.get("version") in (7,8,9):
+        if document.get("version") in (7,8,9,10,11,12):
             for i,c in document.get("newmaps",[]):
                 if i in project.newmaps:raise FormatError("Duplicate map ID")
                 project.newmaps[i]=c
-        if document.get("version") in (6,7,8,9) and document.get("landmarks") is not None:
+        if document.get("version") in (6,7,8,9,10,11,12) and document.get("landmarks") is not None:
             try:project.landmarks=[bytes.fromhex(r) for r in document["landmarks"]]
             except (TypeError,ValueError) as e:raise FormatError("Invalid landmark data") from e
-        if document.get("version") in (5,6,7,8,9):
+        if document.get("version") in (5,6,7,8,9,10,11,12):
             from .world_expansion import decode
             project.world=decode(document["world"])
-        if document.get('version') in (4,5,6,7,8,9):
+        if document.get('version') in (4,5,6,7,8,9,10,11,12):
             from .expanded_content import decode
             try:project.content=decode(document['content'])
             except (KeyError,TypeError,ValueError) as error:raise FormatError('Invalid expanded content: '+str(error)) from error
-        if document.get('version') in (3,4,5,6,7,8,9):
+        if document.get('version') in (3,4,5,6,7,8,9,10,11,12):
             try:
                 expansion=document['expansion'];project.expanded=expansion['enabled']
                 for copy in expansion['layouts']:
@@ -454,6 +463,8 @@ class Project:
         for offset,data,label in landmark_writes(self):write(offset,data,label)
         from .event_editing import writes as event_writes
         for offset,data,label in event_writes(self):write(offset,data,label)
+        from .private_dialogue import writes as dialogue_writes
+        for offset,data,label in dialogue_writes(self):write(offset,data,label)
         if self.edits or self.event_edits or self.expanded or self.landmarks is not None:
             # Both supported sizes are powers of two; checksum bytes sum to 510.
             output[0x7FDC:0x7FE0] = bytes((255,255,0,0))

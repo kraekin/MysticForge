@@ -27,6 +27,9 @@ def plan_expanded(project):
     content_active=active(project);landmark_active=project.landmarks is not None and len(project.landmarks)>143;limit=CONTENT_START if content_active or landmark_active else EXPANDED_SIZE
     from .world_expansion import active as world_active, START as WORLD_START, writes as world_writes
     if world_active(project):limit=WORLD_START
+    if project.private_dialogues:
+        from .private_dialogue import START
+        limit=min(limit,START)
     cursor=TABLE+TABLE_SIZE;writes=[];sizes={};pointers={};moved=[]
     changed={r for k,r,_ in project.edits if k=='layout'}
     for resource in list(range(44))+sorted(project.layout_copies):

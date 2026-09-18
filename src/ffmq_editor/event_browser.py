@@ -2,7 +2,7 @@
 from .event_editing import event_rom
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,QLineEdit,QComboBox,
-    QPushButton,QSplitter,QWidget,QTreeWidget,QTreeWidgetItem,QPlainTextEdit,QApplication)
+    QPushButton,QSplitter,QWidget,QTreeWidget,QTreeWidgetItem,QPlainTextEdit,QApplication,QTabWidget)
 from .event_catalog import EventCatalog
 from .event_inspector import EventInspector
 
@@ -17,27 +17,33 @@ class EventBrowser(QDialog):
         self.note=QLabel();self.note.setWordWrap(True);box.addWidget(self.note)
         bar=QHBoxLayout();box.addLayout(bar)
         self.search=QLineEdit();self.search.setPlaceholderText('Search dialogue, address, NPC ID, area name or reference…');bar.addWidget(self.search,1)
-        self.category=QComboBox();self.category.addItems(['All events','NPC events','World / cutscene events','Text fragments','Linked routines / branches','With map references']);bar.addWidget(self.category)
+        self.category=QComboBox();self.category.addItems(['All events','NPC events','World / cutscene events','Text fragments','Linked routines / branches','With map references','Current map']);bar.addWidget(self.category)
+        self.search.setClearButtonEnabled(True)
         refresh=QPushButton('Refresh from project');refresh.clicked.connect(self.refresh);bar.addWidget(refresh)
         flags=QPushButton('Flags & references…');flags.clicked.connect(self.show_flags);bar.addWidget(flags)
         split=QSplitter();box.addWidget(split,1)
-        self.list=QTreeWidget();self.list.setHeaderLabels(['Event','Known names / IDs','References']);self.list.setColumnWidth(0,100);self.list.setColumnWidth(1,255);split.addWidget(self.list)
+        self.list=QTreeWidget();self.list.setHeaderLabels(['Event / NPC','Address','Uses']);self.list.setColumnWidth(0,285);self.list.setColumnWidth(1,100);split.addWidget(self.list)
         right=QWidget();layout=QVBoxLayout(right);split.addWidget(right);split.setSizes([500,700])
         self.heading=QLabel();self.heading.setWordWrap(True);layout.addWidget(self.heading)
-        self.preview=QPlainTextEdit();self.preview.setReadOnly(True);layout.addWidget(self.preview,1)
-        self.dialogue_button=QPushButton('Preview dialogue…');self.dialogue_button.clicked.connect(self.preview_dialogue);layout.addWidget(self.dialogue_button)
-        self.summary_button=QPushButton('Read event summary…');self.summary_button.clicked.connect(self.open_summary);layout.addWidget(self.summary_button)
-        self.open_button=QPushButton('Open event flow…');self.open_button.clicked.connect(self.open_event);layout.addWidget(self.open_button)
-        self.edit_button=QPushButton('Edit dialogue / parameters…');self.edit_button.clicked.connect(self.edit_event);layout.addWidget(self.edit_button)
-        layout.addWidget(QLabel('Referenced by — double-click a row to visit its source'))
-        self.references=QTreeWidget();self.references.setHeaderLabels(['Type','Source']);self.references.setColumnWidth(0,85);layout.addWidget(self.references,1)
-        self.visit_button=QPushButton('Go to selected reference');self.visit_button.clicked.connect(self.visit);layout.addWidget(self.visit_button)
+        self.scope=QLabel();self.scope.setWordWrap(True);layout.addWidget(self.scope)
+        self.details=QTabWidget();layout.addWidget(self.details,1)
+        self.preview=QPlainTextEdit();self.preview.setReadOnly(True);self.preview.setStyleSheet('font-size:15px;');self.details.addTab(self.preview,'Dialogue and actions')
+        actions=QHBoxLayout();layout.addLayout(actions)
+        self.dialogue_button=QPushButton('Preview…');self.dialogue_button.clicked.connect(self.preview_dialogue);actions.addWidget(self.dialogue_button)
+        self.summary_button=QPushButton('Summary…');self.summary_button.clicked.connect(self.open_summary);actions.addWidget(self.summary_button)
+        self.open_button=QPushButton('Event flow…');self.open_button.clicked.connect(self.open_event);actions.addWidget(self.open_button)
+        self.edit_button=QPushButton('Edit shared dialogue / parameters…');self.edit_button.clicked.connect(self.edit_event);actions.addWidget(self.edit_button)
+        self.reference_note=QLabel('Select an Object reference to visit its NPC or customize its dialogue.');self.reference_note.setWordWrap(True);layout.addWidget(self.reference_note)
+        self.references=QTreeWidget();self.references.setHeaderLabels(['Type','Source']);self.references.setColumnWidth(0,85);self.details.addTab(self.references,'Used by')
+        self.visit_button=QPushButton('Go to selected reference');self.visit_button.clicked.connect(self.visit);navigation=QHBoxLayout();layout.addLayout(navigation);navigation.addWidget(self.visit_button)
+        self.private_button=QPushButton('Customize NPC dialogue…');navigation.addWidget(self.private_button);self.private_button.clicked.connect(self.independent_dialogue)
+        self.event_button=QPushButton('Customize NPC event…');navigation.addWidget(self.event_button);self.event_button.clicked.connect(self.custom_event)
         self.count=QLabel();box.addWidget(self.count)
         close=QPushButton('Close');close.clicked.connect(self.close);box.addWidget(close)
         self.search.textChanged.connect(self.filter);self.category.currentIndexChanged.connect(self.filter)
         self.list.itemSelectionChanged.connect(self.select);self.list.itemDoubleClicked.connect(lambda *_:self.open_event())
         self.references.itemDoubleClicked.connect(lambda *_:self.visit())
-        self.references.itemSelectionChanged.connect(lambda:self.visit_button.setEnabled(self.references.currentItem() is not None and self.references.currentItem().data(0,ROLE) is not None))
+        self.references.itemSelectionChanged.connect(self.reference_selected)
         window.stack.indexChanged.connect(self.mark_stale)
         self.refresh()
 
@@ -49,13 +55,16 @@ class EventBrowser(QDialog):
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:self.catalog=EventCatalog(event_rom(self.window.project),self.window.project)
         finally:QApplication.restoreOverrideCursor()
-        self.project=self.window.project;self.snapshot_edits=dict(self.project.edits);self.snapshot_events=dict(self.project.event_edits);self.stale=False
-        self.note.setText('Project snapshot. Use Edit dialogue / parameters for supported edits. Search includes dialogue and reference names. References show static calls and both branch outcomes, not a running-game trace. '+ ' '.join(self.catalog.notes))
+        self.project=self.window.project;self.snapshot_edits=dict(self.project.edits);self.snapshot_events=dict(self.project.event_edits);self.snapshot_private=dict(self.project.private_dialogues);self.stale=False
+        self.note.setText('Search for words an NPC says, a map name, or an event ID. Select an event to read it; Used by shows where it is referenced. '+ ' '.join(self.catalog.notes))
         self.list.clear();self.items={}
-        for key2,record in sorted(self.catalog.records.items(),key=lambda kv:(kv[0][0],kv[0][1] or -1)):
+        for key2,record in sorted(self.catalog.records.items(),key=lambda kv:(not any(r.kind=='Object' for r in kv[1].references),not bool(kv[1].aliases),kv[0][0],kv[0][1] or -1)):
             label=', '.join(sorted(record.aliases)) or 'Linked routine / branch'
-            item=QTreeWidgetItem([f'${record.address:06X}',label,str(len(record.references))])
-            item.setData(0,ROLE,key2);item.setToolTip(1,label+(f' · bounded to {record.extent} bytes' if record.extent is not None else ''))
+            objects=[r for r in record.references if r.kind=='Object']
+            display=objects[0].label if len(objects)==1 else label
+            if record.address in getattr(event_rom(self.window.project),'private_npc_entries',{}).values():display='Custom NPC · '+display
+            item=QTreeWidgetItem([display,f'${record.address:06X}',str(len(record.references))])
+            item.setData(0,ROLE,key2);item.setToolTip(0,label+(f' · bounded to {record.extent} bytes' if record.extent is not None else ''))
             self.list.addTopLevelItem(item);self.items[key2]=item
         self.filter()
         if key in self.items and not self.items[key].isHidden():self.list.setCurrentItem(self.items[key])
@@ -64,7 +73,7 @@ class EventBrowser(QDialog):
         query=self.search.text().strip().lower().replace('$','');category=self.category.currentIndex();visible=[]
         for key,item in self.items.items():
             record=self.catalog.records[key];aliases=' '.join(record.aliases)
-            category_ok=(category==0 or category==1 and 'NPC ' in aliases or category==2 and 'World /' in aliases or category==3 and 'Text fragment' in aliases or category==4 and not record.aliases or category==5 and any(r.kind in ('Object','Entrance') for r in record.references))
+            category_ok=(category==0 or category==1 and 'NPC ' in aliases or category==2 and 'World /' in aliases or category==3 and 'Text fragment' in aliases or category==4 and not record.aliases or category==5 and any(r.kind in ('Object','Entrance') for r in record.references) or category==6 and any(r.kind in ('Object','Entrance') and r.target[0]==self.window.area_id for r in record.references))
             match=category_ok and all(word in record.search_text.replace('$','') for word in query.split())
             item.setHidden(not match)
             if match:visible.append(item)
@@ -75,22 +84,41 @@ class EventBrowser(QDialog):
 
     def select(self):
         item=self.list.currentItem();self.references.clear();self.visit_button.setEnabled(False)
+        self.private_button.setEnabled(False)
+        self.event_button.setEnabled(False)
+        self.scope.clear()
         self.open_button.setEnabled(item is not None)
         self.edit_button.setEnabled(item is not None)
         self.summary_button.setEnabled(item is not None)
         if item is None:self.heading.setText('No matching events');self.preview.clear();self.dialogue_button.setEnabled(False);return
         record=self.catalog.records[tuple(item.data(0,ROLE))]
         names=', '.join(sorted(record.aliases)) or 'Linked routine / branch'
+        owners=[r.label for r in record.references if r.kind=='Object']
+        if len(owners)==1:names=owners[0]+' · '+names
+        self.heading.setStyleSheet('font-size:17px;font-weight:bold')
+        private=record.address in getattr(event_rom(self.window.project),'private_npc_entries',{}).values()
+        objects=sum(r.kind=='Object' for r in record.references)
+        ident=next((i for i,a in getattr(event_rom(self.window.project),'private_npc_entries',{}).items() if a==record.address),None)
+        structured=ident is not None and 'actions' in self.window.project.private_dialogues[ident]
+        self.scope.setText(('Custom NPC event.' if structured else 'Custom NPC dialogue.' if private else 'Shared event: edits affect every use of these bytes.')+f' {objects} direct object reference(s). Calls and runtime assignments may add other users.')
+        self.edit_button.setText('Edit NPC event…' if structured else 'Edit NPC dialogue…' if private else 'Edit shared dialogue / parameters…')
+        if not private:
+            from .event_editing import segments_for
+            editable=bool(segments_for(self.window.project,record.address,record.extent))
+            self.edit_button.setEnabled(editable)
+            self.edit_button.setToolTip('Edit the supported dialogue and parameter spans used by every caller.' if editable else 'No editable spans here. Open Event flow and expand its called events to find dialogue.')
+        else:self.edit_button.setToolTip('Edit the selected NPC conversation in expanded storage.')
+        self.details.setTabText(1,f'Used by ({len(record.references)})')
         self.heading.setText(f'{names} · ${record.address:06X}'+(f' · {record.extent}-byte extent' if record.extent is not None else ''))
         issues='\nInspection notes: '+', '.join(sorted(record.issues)) if record.issues else ''
         self.dialogue_button.setEnabled(bool(record.dialogues))
-        self.preview.setPlainText(('Dialogue\n\n'+'\n\n'.join(record.dialogues)+'\n\n— Event steps —\n\n' if record.dialogues else '')+record.preview+issues)
+        self.preview.setPlainText(('Dialogue\n\n'+'\n\n'.join(record.dialogues)+'\n\n— Event steps —\n\n' if record.dialogues else '')+record.action_preview+issues)
         for ref in sorted(record.references,key=lambda r:(r.kind,r.label,r.target)):
             row=QTreeWidgetItem([ref.kind,ref.label]);row.setData(0,ROLE,ref);self.references.addTopLevelItem(row)
         if not record.references:self.references.addTopLevelItem(QTreeWidgetItem(['','No incoming references found in the indexed static sources.']))
 
     def fresh(self):
-        if self.stale or self.project is not self.window.project or self.snapshot_edits!=self.window.project.edits or self.snapshot_events!=self.window.project.event_edits:
+        if self.stale or self.project is not self.window.project or self.snapshot_edits!=self.window.project.edits or self.snapshot_events!=self.window.project.event_edits or self.snapshot_private!=self.window.project.private_dialogues:
             self.refresh();return False
         return True
 
@@ -118,6 +146,15 @@ class EventBrowser(QDialog):
         item=self.list.currentItem()
         if item is None:return
         record=self.catalog.records[tuple(item.data(0,ROLE))]
+        if record.address in getattr(event_rom(self.window.project),'private_npc_entries',{}).values():
+            refs=[r for r in record.references if r.kind=='Object']
+            if len(refs)==1:
+                from .private_dialogue_editor import show_dialogue
+                show_dialogue(self.window,*refs[0].target);self.refresh()
+            else:
+                self.details.setCurrentWidget(self.references)
+                self.scope.setText('Select an Object reference in Used by, then customize its dialogue. Other NPCs keep their conversations.')
+            return
         from .event_editor import show_editor
         show_editor(self.window,record.address,record.extent)
         self.refresh()
@@ -132,6 +169,36 @@ class EventBrowser(QDialog):
         old=getattr(self,'flag_browser',None)
         if old is not None:old.close();old.deleteLater()
         self.flag_browser=FlagBrowser(self);self.flag_browser.show()
+
+    def reference_selected(self):
+        item=self.references.currentItem();ref=item.data(0,ROLE) if item else None
+        self.visit_button.setEnabled(ref is not None)
+        npc=False;custom=False
+        if ref is not None and ref.kind=='Object':
+            area,index=ref.target;objects=self.window.project.objects(area)
+            if 0<=index<len(objects):
+                obj=objects[index];npc=((obj[5]>>3)&3)==0
+                custom=npc and obj[1] in self.window.project.private_dialogues
+        structured=custom and 'actions' in self.window.project.private_dialogues[obj[1]]
+        self.event_button.setEnabled(npc)
+        self.event_button.setText('Edit NPC event…' if structured else 'Customize NPC event…')
+        self.private_button.setEnabled(npc and not structured)
+        self.private_button.setText('Edit NPC dialogue…' if custom else 'Customize NPC dialogue…')
+        self.private_button.setToolTip('Give this NPC its own conversation without changing other NPCs.')
+
+    def custom_event(self):
+        if not self.fresh():return
+        item=self.references.currentItem();ref=item.data(0,ROLE) if item else None
+        if ref is None or ref.kind!='Object':return
+        from .custom_event_editor import show_event_editor
+        show_event_editor(self.window,*ref.target);self.refresh()
+
+    def independent_dialogue(self):
+        if not self.fresh():return
+        item=self.references.currentItem();ref=item.data(0,ROLE) if item else None
+        if ref is None or ref.kind!='Object':return
+        from .private_dialogue_editor import show_dialogue
+        show_dialogue(self.window,*ref.target);self.refresh()
 
     def visit(self):
         if not self.fresh():return
@@ -155,5 +222,5 @@ def show_browser(window):
     browser=getattr(window,'event_browser',None)
     if browser is None:
         browser=EventBrowser(window);window.event_browser=browser
-    elif browser.stale or browser.project is not window.project or browser.snapshot_edits!=window.project.edits or browser.snapshot_events!=window.project.event_edits:browser.refresh()
+    elif browser.stale or browser.project is not window.project or browser.snapshot_edits!=window.project.edits or browser.snapshot_events!=window.project.event_edits or browser.snapshot_private!=window.project.private_dialogues:browser.refresh()
     browser.show();browser.raise_();browser.activateWindow()

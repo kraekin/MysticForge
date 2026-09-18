@@ -1,4 +1,5 @@
 """Inspect, move and place seven-byte field objects within verified capacity."""
+from .event_flags import flag_label
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QListWidget,QLabel,QFormLayout,QSpinBox,QPushButton,QScrollArea,QHBoxLayout,QComboBox,QStackedWidget
 
 # Field encodings verified against the area loader. Unexposed bits survive edits.
@@ -40,6 +41,9 @@ class ObjectEditor(QWidget):
             spin=QSpinBox();spin.setRange(0,254 if name=="Visibility flag" else 127 if name=="Behavior index" else mask>>shift)
             if name in ("Sprite","Visibility flag"):spin.setDisplayIntegerBase(16);spin.setPrefix("$")
             self.fields[name]=spin;form.addRow(name,spin)
+        self.visibility_name=QLabel();self.visibility_name.setWordWrap(True);form.addRow('',self.visibility_name)
+        self.fields['Visibility flag'].valueChanged.connect(lambda value:self.visibility_name.setText(flag_label(value)))
+        self.visibility_name.setText(flag_label(self.fields['Visibility flag'].value()))
         self.fields["Facing"].setToolTip("Stored orientation 0–3; preserves all coordinate bits.")
         self.fields["Sprite"].setToolTip("Index in this area's loaded sprite set. Some slots may be empty.")
         self.fields["Behavior index"].setToolTip("Full 7-bit index assembled by the v1.0 loader from byte 2 bits 6–7 and byte 4 bits 0–4.")
@@ -48,6 +52,9 @@ class ObjectEditor(QWidget):
         scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(body);box.addWidget(scroll,2)
         self.apply=QPushButton("Apply object changes");box.addWidget(self.apply);self.apply.clicked.connect(self.commit)
         choose_interaction=QPushButton('Choose interaction…');box.addWidget(choose_interaction);choose_interaction.clicked.connect(lambda:open_interactions(self))
+        self.dialogue_button=QPushButton('Customize NPC dialogue…');box.addWidget(self.dialogue_button);self.dialogue_button.clicked.connect(self.independent_dialogue)
+        self.dialogue_button.setToolTip('Give this NPC its own conversation without changing other NPCs.')
+        self.event_button=QPushButton('Customize NPC event…');box.addWidget(self.event_button);self.event_button.clicked.connect(self.custom_event)
         choose_appearance=QPushButton('Choose appearance from palette…');box.addWidget(choose_appearance);choose_appearance.clicked.connect(lambda:self.mode.setCurrentIndex(1))
         content=QPushButton("Open reward / encounter");content.clicked.connect(lambda:self.window.content_editor.open_object(self.selected));box.addWidget(content)
         inspect=QPushButton("Open full inspector…");inspect.clicked.connect(self.inspect);box.addWidget(inspect)
@@ -65,6 +72,14 @@ class ObjectEditor(QWidget):
         self.window.canvas.object_preview=None;self.window.canvas.viewport().update()
         self.pages.setCurrentIndex(index)
         if index:self.palette.refresh()
+
+    def custom_event(self):
+        from .custom_event_editor import show_event_editor
+        show_event_editor(self.window,self.window.area_id,self.selected)
+
+    def independent_dialogue(self):
+        from .private_dialogue_editor import show_dialogue
+        show_dialogue(self.window,self.window.area_id,self.selected)
 
     def placing(self):return self.mode.currentIndex()==1
 
@@ -100,6 +115,14 @@ class ObjectEditor(QWidget):
         self.add.setEnabled(structural and len(objects)<w.project.object_capacity(w.area_id))
         self.add.setText('Append copy' if valid else 'Add object')
         self.apply.setEnabled(valid)
+        npc=valid and ((objects[index][5]>>3)&3)==0
+        custom=npc and objects[index][1] in w.project.private_dialogues
+        self.event_button.setEnabled(npc)
+        structured=custom and 'actions' in w.project.private_dialogues[objects[index][1]]
+        self.event_button.setText('Edit NPC event…' if structured else 'Customize NPC event…')
+        self.dialogue_button.setEnabled(npc and not structured)
+        self.dialogue_button.setToolTip('Use Edit NPC event to change dialogue within its action list.' if structured else 'Give this NPC its own conversation without changing other NPCs.')
+        self.dialogue_button.setText('Edit NPC dialogue…' if custom else 'Customize NPC dialogue…')
         for spin in self.fields.values():spin.setEnabled(valid)
         if not valid:
             self.summary.setText("Select an object from the list or click its marker with the Objects tool.")

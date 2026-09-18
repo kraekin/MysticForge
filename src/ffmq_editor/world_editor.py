@@ -1,4 +1,5 @@
 """Route and condition editing without reallocating route streams."""
+from .event_flags import flag_label
 from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QSpinBox,QComboBox,QCheckBox,QPushButton,QTableWidget,QScrollArea
 from .world import DIRECTIONS,points,position,gate,available,validate
 from .resources import changes
@@ -14,6 +15,7 @@ class WorldEditor(QWidget):
         self.info=QLabel();self.info.setWordWrap(True);box.addWidget(self.info)
         line=QHBoxLayout();line.addWidget(QLabel("Destination node"));self.destination=QSpinBox();self.destination.setRange(0,63);self.destination.setDisplayIntegerBase(16);line.addWidget(self.destination);box.addLayout(line)
         line=QHBoxLayout();line.addWidget(QLabel("Required flag $"));self.flag=QSpinBox();self.flag.setRange(0,255);self.flag.setDisplayIntegerBase(16);line.addWidget(self.flag);box.addLayout(line)
+        self.flag_name=QLabel();self.flag_name.setWordWrap(True);box.addWidget(self.flag_name)
         self.preview=QCheckBox("Flag set in preview");box.addWidget(self.preview)
         self.steps=QTableWidget(0,2);self.steps.setHorizontalHeaderLabels(["Step direction","Tiles (1â€“31)"]);self.steps.setMinimumHeight(180);box.addWidget(self.steps)
         controls=QHBoxLayout();box.addLayout(controls)
@@ -39,6 +41,8 @@ class WorldEditor(QWidget):
             self.window.refresh_map();x,y=position(self.window.project,self.node.value());self.window.canvas.centerOn(x*16+8,y*16+8)
 
     def flag_changed(self):
+        self.flag_name.setText(flag_label(self.flag.value()) if self.flag.value() else "No route: flag 0 disables this direction")
+        self.flag.setToolTip(flag_label(self.flag.value()) if self.flag.value() else "No route: flag 0 disables this direction")
         self.preview.blockSignals(True);self.preview.setChecked(self.flag.value() in self.window.project.flags);self.preview.setEnabled(self.flag.value()!=0);self.preview.blockSignals(False)
 
     def preview_changed(self,enabled):
@@ -94,3 +98,4 @@ class WorldEditor(QWidget):
     def new_location(self):
         from .world_creation import open_new_location
         open_new_location(self.window,self.node.value(),self.direction.currentIndex())
+

@@ -13,7 +13,7 @@ class EventEditor(QDialog):
         super().__init__(window);self.window=window;self.project=window.project;self.entry=entry;self.extent=extent;self.current=None;self.loading=False
         self.setWindowTitle(f'MysticForge — Edit event ${entry:06X}');self.resize(1080,760)
         box=QVBoxLayout(self)
-        heading=QLabel('Dialogue & event parameters');heading.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(heading)
+        heading=QLabel('Shared dialogue / parameters');heading.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(heading)
         note=QLabel('Changes apply to this shared event everywhere it is used. Text stays inside its original byte span; calls, branch destinations, page/window commands and shared dictionary definitions are preserved. Apply changes to the project, then export a ROM copy or patch.');note.setWordWrap(True);box.addWidget(note)
         split=QSplitter();box.addWidget(split,1)
         left=QWidget();layout=QVBoxLayout(left);split.addWidget(left)
@@ -30,12 +30,8 @@ class EventEditor(QDialog):
         self.heading=QLabel();self.heading.setWordWrap(True);form.addWidget(self.heading)
         self.text=QPlainTextEdit();self.text.setPlaceholderText('Type dialogue here. Use Enter for a line break.');self.text.setStyleSheet('font-size:16px');form.addWidget(self.text,1)
         row=QHBoxLayout();form.addLayout(row)
-        self.token=QComboBox();row.addWidget(self.token,1)
-        for token in SPECIAL:self.token.addItem(token,token)
-        for text in ('“','”','…'):self.token.addItem('Punctuation: '+text,text)
-        for name,(op,count) in NAME_OPS.items():
-            for i in range(count):self.token.addItem(f'{name}: {inline_name(self.project.base_rom,op,i) or i} (${i:02X})',f'[{name}:{i:02X}]')
-        self.insert=QPushButton('Insert name / token');self.insert.clicked.connect(lambda:self.text.insertPlainText(self.token.currentData()));row.addWidget(self.insert)
+        from .dialogue_tokens import add_token_picker
+        self.token,self.insert=add_token_picker(row,self.text,self.project.base_rom)
         self.preview_button=QPushButton('Preview dialogue…');self.preview_button.clicked.connect(self.preview);row.addWidget(self.preview_button)
         self.spin=QSpinBox();form.addWidget(self.spin)
         self.flag=QComboBox()
@@ -126,12 +122,8 @@ class EventEditor(QDialog):
 
     def preview(self):
         from .dialogue_preview import DialoguePreview
-        text=self.text.toPlainText()
-        def resolve(m):
-            name,i=m[1],int(m[2],16)
-            return inline_name(self.project.base_rom,NAME_OPS[name][0],i) or m[0]
-        text=re.sub(r'\[(Character|Item|Location|Enemy):([0-9A-Fa-f]{2})\]',resolve,text)
-        text=re.sub(r'\[(?:Glyph|Draw glyph):([0-9A-Fa-f]{2})\]',r'[\1]',text).replace('[Spacing]',' ').replace('[Line break or space]','[line break or space]')
+        from .dialogue_tokens import preview_text
+        text=preview_text(self.project.base_rom,self.text.toPlainText())
         self.preview_dialog=DialoguePreview(self,text);self.preview_dialog.show()
 
     def references(self):
@@ -163,6 +155,15 @@ class EventEditor(QDialog):
         if self.allow_discard():super().reject()
 
 def show_editor(window,entry,extent=None,address=None):
+    entries=getattr(event_rom(window.project),'private_npc_entries',{})
+    ident=next((i for i,a in entries.items() if a==entry),None)
+    if ident is not None:
+        owners=[(a.id,i) for a in window.project.rom.areas for i,o in enumerate(window.project.objects(a.id)) if o[1]==ident and (o[5]>>3)&3==0]
+        if len(owners)==1:
+            from .private_dialogue_editor import show_dialogue
+            show_dialogue(window,*owners[0])
+        else:window.error('This conversation has multiple object references. Select the NPC to change, then use Customize NPC dialogue (or Edit NPC dialogue) in the Object editor.')
+        return
     QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
     try:dialog=EventEditor(window,entry,extent)
     except (ValueError,IndexError) as error:window.error(error);return

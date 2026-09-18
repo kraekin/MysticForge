@@ -49,7 +49,7 @@ class ConnectionPanel(QWidget):
             if entry.target:
                 area,x,y,facing=entry.target
                 target=f"${area:02X} {self.window.rom.areas[area].name} · ({x},{y})"
-            else:target="Runtime/script destination" if entry.action==3 else "Unresolved"
+            else:target="Runtime/script destination" if entry.action==3 else "Script-controlled destination" if entry.action==8 else "Unresolved"
             detail=entry.label+((" · expanded coordinate" if entry.source>=0x200000 else f" · ROM ${entry.source:06X}") if entry.source is not None else "")
             for col,text in enumerate((f"E{row:X} · {entry.x},{entry.y}",f"${entry.action:02X} / ${entry.value:02X}",target,detail)):
                 item=QTableWidgetItem(text);item.setToolTip(text);self.table.setItem(row,col,item)
@@ -62,6 +62,11 @@ class ConnectionPanel(QWidget):
         row=self.table.currentRow()
         if not 0<=row<len(self.entries):return
         entry=self.entries[row]
+        if self.window.tool.currentText()=='Entrances':
+            from PySide6.QtCore import QRectF
+            self.window.arrival=None;self.window.canvas.arrival=None
+            self.window.canvas.selection_rect=QRectF(entry.x*16,entry.y*16,16,16)
+            self.window.canvas.viewport().update()
         if not getattr(self,"selecting_on_canvas",False):self.window.canvas.centerOn(entry.x*16+8,entry.y*16+8)
 
     def inspect(self):

@@ -1,4 +1,5 @@
 """Place compatible field-object presets through the map canvas."""
+from .event_flags import flag_label
 import numpy as np
 from PySide6.QtCore import Qt,QSize
 from PySide6.QtGui import QIcon,QPixmap
@@ -80,7 +81,7 @@ class ObjectPalette(QWidget):
         self.window.canvas.object_preview=None;self.window.canvas.viewport().update();raw=self.raw()
         if raw is None:self.info.setText('No compatible presets on this map. Overworld landmarks use Artwork.');return
         visible=raw[0] in self.window.project.flags
-        self.info.setText(f'Copies interaction ${(raw[1]):02X} and visibility flag ${raw[0]:02X} ({"visible" if visible else "hidden"} in this preview). Behavior, chest rewards and encounters are reused, not newly created. Edit the placed object to change them.')
+        self.info.setText(f'Copies interaction ${(raw[1]):02X} and visibility flag {flag_label(raw[0])} ({"visible" if visible else "hidden"} in this preview). Behavior, chest rewards and encounters are reused, not newly created. Edit the placed object to change them.')
 
     def hover(self,x,y):
         w=self.window;a=w.rom.areas[w.area_id];attrs=w.rom.attributes[a.attributes_id];w.canvas.object_preview=None
@@ -99,3 +100,4 @@ class ObjectPalette(QWidget):
         changes[('object_count',a.offset,0)]=(count,count+1)
         w.commit_changes(changes,'Place object');self.editor.list.setCurrentRow(count)
         self.info.setText(f'Placed object {count:02X} at ({x}, {y}). {count+1}/{w.project.object_capacity(w.area_id)} slots used. '+('Hidden by its copied visibility flag. ' if raw[0] not in w.project.flags else '')+'Click another empty tile to place another, or edit the selected object.')
+

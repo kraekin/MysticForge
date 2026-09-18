@@ -3,6 +3,7 @@
 This is deliberately not a relocating assembler: the original index is the
 authority for writable spans, including when loading an untrusted project.
 """
+import json
 from collections import deque
 from copy import copy
 from dataclasses import dataclass
@@ -165,13 +166,18 @@ def index(project):
     return cached[1]
 
 def event_rom(project):
-    if not project.event_edits:return project.rom
-    signature=(id(project.rom),tuple((a,r['bytes']) for a,r in sorted(project.event_edits.items())))
+    if not project.event_edits and not project.private_dialogues:return project.rom
+    signature=(id(project.rom),tuple((a,r['bytes']) for a,r in sorted(project.event_edits.items())),json.dumps(project.private_dialogues,sort_keys=True))
     cached=getattr(project,'_event_overlay',None)
     if cached is not None and cached[0]==signature:return cached[1]
     result=copy(project.rom);data=bytearray(result.data)
     for at,record in project.event_edits.items():
         raw=bytes.fromhex(record['bytes']);data[pc(at):pc(at)+len(raw)]=raw
+    if project.private_dialogues:
+        from .private_dialogue import plan
+        entries,writes=plan(project);result.private_npc_entries=entries
+        data.extend(b'\xff'*(0x100000-len(data)))
+        for at,raw,_ in writes:data[at:at+len(raw)]=raw
     result.data=bytes(data);project._event_overlay=(signature,result);return result
 
 def view_rom(window):

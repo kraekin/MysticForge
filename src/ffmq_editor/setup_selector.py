@@ -44,7 +44,7 @@ class SetupButtons(QWidget):
 
 class TerrainButtons(SetupButtons):
     def update_targets(self):
-        from .event_flags import NAMES,BEHAVIOR_NAMES,flag_label
+        from .event_flags import KNOWN_NAMES,flag_label
         combo=self.w.target;p=self.w.project
         choices=[]
         for index in range(combo.count()):
@@ -53,7 +53,7 @@ class TerrainButtons(SetupButtons):
                 name='Base terrain';tip='Edit the underlying terrain shared by this map’s setups.'
             else:
                 actions=[a for a in self.w.rom.area_actions[self.w.area_id] if a.opcode==0x22 and a.value==resource]
-                names=[NAMES.get(a.flag,BEHAVIOR_NAMES.get(a.flag,f'Flag ${a.flag:02X}')) for a in actions]
+                names=[KNOWN_NAMES.get(a.flag,f'Flag ${a.flag:02X}') for a in actions]
                 name=' / '.join(dict.fromkeys(names))
                 patch=self.w.rom.changes[resource]
                 tip=f'Story terrain change ${resource:02X}: {patch.width} × {patch.height} tiles at ({patch.x}, {patch.y}).\n'+ '\n'.join(flag_label(a.flag)+(' — active' if a.flag in p.flags else ' — inactive in preview') for a in actions)

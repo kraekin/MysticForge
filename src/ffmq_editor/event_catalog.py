@@ -18,6 +18,7 @@ class EventRecord:
     aliases:set=field(default_factory=set)
     references:set=field(default_factory=set)
     preview:str=''
+    action_preview:str=''
     dialogues:tuple=()
     flags:tuple=()
     issues:set=field(default_factory=set)
@@ -42,7 +43,7 @@ class EventCatalog:
             record=self.records[key]
             if alias:record.aliases.add(alias)
             if ref:record.references.add(ref)
-        for i in range(124):
+        for i in [*range(124),*getattr(rom,"private_npc_entries",{})]:
             address=npc_entry(rom,i)
             if address is not None:add(address,f'NPC ${i:02X}')
         for i in range(80):add(world_entry(rom,i),f'World / cutscene ${i:02X}')
@@ -72,6 +73,7 @@ class EventCatalog:
             record.issues.update(status(r) for r in rows if not r.complete)
             presentation=readable_rows(rom,rows)
             record.preview='\n'.join(r.text if isinstance(r,Dialogue) else r.description for r in presentation)
+            record.action_preview='\n'.join(r.description for r in presentation if not isinstance(r,Dialogue))
             record.dialogues=tuple(r.text for r in presentation if isinstance(r,Dialogue))
             record.flags=tuple(dict.fromkeys(use for row in rows for use in flag_uses(row)))
             for row in rows:

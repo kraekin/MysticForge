@@ -17,20 +17,30 @@ BEHAVIOR_NAMES = {
     0x13: 'Level Forest completed / Old Man saved',
     0x14: 'Tree Wither received from Old Man',
     0x15: 'Kaeli healthy / Level Forest Minotaur phase (cleared when poisoned)',
+    0x16: 'Fireburg locked house in pit checked with Reuben (triggers Tristam)',
+    0x17: 'Life Temple entrance cutscene completed (Spring of Life dried up)',
 
+    0x1C: 'Fireburg locked house unlocked (opened with Multi-Key)',
     0x1D: 'Giant Tree set',
     0x1E: 'Minotaur defeated',
     0x1F: 'Kaeli cured with Elixir(unlocks focus tower route)',
 
-    # Sand Temple & Overworld
-    0x20: 'Sand Temple column unmoved',
-    0x21: 'Sand Temple column moved',
+    0x20: 'Focus Tower 2F movable pillar unmoved (starting position)',
+    0x21: 'Focus Tower 2F movable pillar moved into slot (bridge formed)',
     0x22: 'Hill of Destiny collapsed',
     0x23: 'Sand Coin used at Sand Temple',
+    0x24: 'Squidite present in Wintry Cave',
+    0x25: 'Snow Crab present in Falls Basin',
 
     0x2C: 'Focus Tower Earth Door open',
+    0x2D: 'Focus Tower Water Door open',
+    0x2E: 'Focus Tower Fire Door open',
+    0x2F: 'Focus Tower Wind Door open',
 
     0x30: 'Focus Tower Earth Door closed',
+    0x31: 'Focus Tower Water Door closed',
+    0x32: 'Focus Tower Fire Door closed',
+    0x33: 'Focus Tower Wind Door closed',
 
     # Boulders & Terrain Obstacles
     0x34: 'Level Forest boulder obstacle active',
@@ -57,14 +67,23 @@ BEHAVIOR_NAMES = {
     0x4E: 'Phoebe present in Libra Temple',
     0x4F: 'Wakewater used on Aquaria',
 
+    0x50: "Ice Golem present in Ice Pyramid (hallway taunt encounter)",
+
+    0x53: 'Multi-Key received from Tristam in Fireburg Hotel (cleared on receive)',
+
     0x5A: 'Tristam present in Sand Temple',
     0x5B: 'River Coin used',
     0x5C: 'Boulder rolled',
     0x5D: 'Medusa defeated',
+    0x5E: "Phoebe present in Aquaria house (post-Ice Golem)",
+    0x5F: 'Reuben present in Fireburg house (cleared when Reuben joins party)',
 
+    0x60: 'Reuben searching for father / Mega Grenade with Hero',
+    0x61: 'Arion rescued from Mine',
     0x62: 'Kaeli at her home in Foresta',
     0x63: 'Enable Minotaur fight',
     0x64: 'Volcano erupted',
+    0x65: 'Sun Coin used (Fire door opened)',
 
     0x6C: 'Mysterious Man present in forest',
     0x6D: 'Hide diseased tree in Level Forest',
@@ -72,24 +91,78 @@ BEHAVIOR_NAMES = {
     0x6F: 'Elixir given to Kaeli',
 
     0x70: 'Talk to Phoebe',
+    0x71: 'Phoebe house intro cutscene watched',
+    0x72: 'Aquaria Wakewater cutscene watched',
     0x73: 'Exit Fall Basin',
     0x74: 'Talk to Grenade Guy',
 
     0x7A: 'Prologue complete',
     0x7D: 'Kaeli sick in bed',
 
+    # Overworld Battlefields - Active / Uncleared (cleared when 10/10 battles completed)
+    0x81: "Foresta Battlefield 1 active (uncleared)",
+    0x82: "Foresta Battlefield 2 active (uncleared)",
+    0x83: "Foresta Battlefield 3 active (uncleared)",
+    0x84: "Aquaria Battlefield 1 active (uncleared)",
+    0x85: "Aquaria Battlefield 2 active (uncleared)",
+    0x86: "Aquaria Battlefield 3 active (uncleared)",
+    0x87: "Aquaria Battlefield 4 active (uncleared)",
+    0x88: "Aquaria Battlefield 5 active (uncleared)",
+    0x89: "Fireburg Battlefield 1 active (uncleared)",
+    0x8A: "Fireburg Battlefield 2 active (uncleared)",
+    0x8B: "Fireburg Battlefield 3 active (uncleared)",
+    0x8C: "Fireburg Battlefield 4 active (uncleared)",
+    0x8D: "Fireburg Battlefield 5 active (uncleared)",
+    0x8E: "Windia Battlefield 1 active (uncleared)",
+    0x8F: "Windia Battlefield 2 active (uncleared)",
+    0x90: "Windia Battlefield 3 active (uncleared)",
+    0x91: "Windia Battlefield 4 active (uncleared)",
+    0x92: "Windia Battlefield 5 active (uncleared)",
+    0x93: "Ship Dock Battlefield 1 active (uncleared)",
+    0x94: "Ship Dock Battlefield 2 active (uncleared)",
+
+    # Overworld Battlefields - Cleared / Reward Claimed (set when 10/10 battles completed)
+    0x95: "Foresta Battlefield 1 cleared (reward claimed)",
+    0x96: "Foresta Battlefield 2 cleared (reward claimed)",
+    0x97: "Foresta Battlefield 3 cleared (reward claimed)",
+    0x98: "Aquaria Battlefield 1 cleared (reward claimed)",
+    0x99: "Aquaria Battlefield 2 cleared (reward claimed)",
+    0x9A: "Aquaria Battlefield 3 cleared (reward claimed)",
+    0x9B: "Aquaria Battlefield 4 cleared (reward claimed)",
+    0x9C: "Aquaria Battlefield 5 cleared (reward claimed)",
+    0x9D: "Fireburg Battlefield 1 cleared (reward claimed)",
+    0x9E: "Fireburg Battlefield 2 cleared (reward claimed)",
+    0x9F: "Fireburg Battlefield 3 cleared (reward claimed)",
+    0xA0: "Fireburg Battlefield 4 cleared (reward claimed)",
+    0xA1: "Fireburg Battlefield 5 cleared (reward claimed)",
+    0xA2: "Windia Battlefield 1 cleared (reward claimed)",
+    0xA3: "Windia Battlefield 2 cleared (reward claimed)",
+    0xA4: "Windia Battlefield 3 cleared (reward claimed)",
+    0xA5: "Windia Battlefield 4 cleared (reward claimed)",
+    0xA6: "Windia Battlefield 5 cleared (reward claimed)",
+    0xA7: "Ship Dock Battlefield 1 cleared (reward claimed)",
+    0xA8: "Ship Dock Battlefield 2 cleared (reward claimed)",
+
     # Late-Game / Special Triggers
+    0xAD: 'Venus Shield chest in Focus Tower unopened (cleared on collect)',
+    0xB2: 'Libra Crest chest spawned in Wintry Cave',
     0xB3: 'Fall Basin chest spawned',
 
+    0xC6: "Mysterious Man present in Focus Tower subterranean cave",
     0xC9: 'Tristam departs from Bone Dungeon (leaving party)',
 
     0xCB: 'Mysterious Man present in Focus Tower cave',
 
+    0xCD: "Mysterious Man present in Focus Tower 2F",
+    0xCE: 'Mysterious Man present in Life Temple',
     0xCF: 'Rainbow Road active',
 
     0xDB: 'Tristam present in Bone Dungeon (boss room)',
+    0xDE: 'Fireburg locked house door barrier visible (cleared when unlocked)',
 
-    0xE0: 'Squid defeated',
+    0xE0: 'Squidite defeated',
+    0xE1: 'Falls Basin entrance cutscene completed',
+    0xE2: 'Ice Pyramid entrance cutscene completed (statue switch hint)',
 
     0xE3: 'Path cut by Kaeli (Axe)',
 
@@ -97,21 +170,27 @@ BEHAVIOR_NAMES = {
 
     # Engine & Poses
     0xF2: 'Alternate monster graphics gate',
-
+    0xF3: 'Preserve scene state across map warp (cutscene transition flag)',
     0xF5: 'Player pose flag - set player looking north(up)',
-    0xF6: 'Player pose flag - set player looking ...',
+    0xF6: 'Player pose flag - set player looking south(down)',
+    0xF7: '',
+    0xF8: '',
+    0xF9: '',
 
+    0xFA: 'Item dialogue "et" suffix flag',
     0xFB: 'Prompt choice boolean (0=Okay, 1=Sorry)',
-
+    0xFC: 'Item dialogue plural suffix flag (append "s")',
     0xFD: 'Script scratchpad boolean',
 }
 
 
+KNOWN_NAMES = {key:value for key,value in (BEHAVIOR_NAMES | NAMES).items() if value.strip()}
+
 EVIDENCE='research/RESTORATION_STATES.md — vanilla restoration flags and area action lists'
 
 def flag_label(value):
-    if value in NAMES:return f'${value:02X} — {NAMES[value]}'
-    if value in BEHAVIOR_NAMES:return f'${value:02X} — {BEHAVIOR_NAMES[value]} (verified use)'
+    if NAMES.get(value):return f'${value:02X} — {NAMES[value]}'
+    if BEHAVIOR_NAMES.get(value):return f'${value:02X} — {BEHAVIOR_NAMES[value]} (verified use)'
     return f'${value:02X} (unnamed game flag)'
 
 @dataclass(frozen=True)

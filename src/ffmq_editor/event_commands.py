@@ -113,7 +113,7 @@ def operand(data,offset,kind):
     return width,(f"{'byte' if kind=='mb' else 'word' if kind=='mw' else '24-bit value'} at engine memory ${value:04X}" if kind.startswith('m') else f'${value:0{width*2}X} ({value})')
 
 def decode_command(rom,address,context):
-    data=rom.data;o=pc(address);op=data[o];bank=address&0xff0000
+    data=rom.data;o=pc(address,expanded=True);op=data[o];bank=address&0xff0000
     if op==6:return Command(1,'Conditional text spacing: line break or space (runtime text mode)')
     if op==0x0e:return Command(6,f'Write 24-bit value ${int.from_bytes(read(data,o+3,3),"little"):06X} to engine memory ${u16(data,o+1):04X}')
     if op==0x16:return Command(3,f'Draw literal tile word ${u16(data,o+1):04X}')

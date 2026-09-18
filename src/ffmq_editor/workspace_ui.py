@@ -15,6 +15,8 @@ def tool_icon(kind):
         p.drawPolygon(QPolygonF([QPointF(3,12),QPointF(11,3),QPointF(20,12),QPointF(11,20)]));p.drawLine(3,12,20,12)
     elif kind=='Stamp':p.drawRect(3,16,18,5);p.drawRect(8,4,8,12)
     elif kind=='Objects':p.drawEllipse(8,2,8,8);p.drawRoundedRect(QRectF(5,12,14,10),3,3)
+    elif kind=='Tile behavior':
+        p.drawRect(3,3,18,18);p.drawLine(3,9,21,9);p.drawLine(3,15,21,15);p.drawLine(9,3,9,21);p.drawLine(15,3,15,21)
     elif kind=='Entrances':p.drawRect(5,2,13,20);p.drawLine(1,12,14,12);p.drawLine(10,8,14,12);p.drawLine(10,16,14,12)
     elif kind=='Overworld routes':
         p.drawLine(5,6,18,6);p.drawLine(18,6,18,18);p.drawEllipse(2,3,6,6);p.drawEllipse(15,15,6,6)
@@ -34,7 +36,7 @@ def add_tool_buttons(w,bar):
            ('Move selection','Move','Move selected terrain','M'),('Eyedropper','Pick','Pick a tile and map pass from the canvas','I'),
            ('Pan','Pan','Drag to pan the map','H'),('Objects','Objects','Select or move NPCs, chests and encounters','O'),
            ('Entrances','Entrances','Select an entrance marker and inspect its destination','E'),
-           ('Overworld routes','Routes','Select overworld route nodes; switches to the overworld','R'),('Artwork','Artwork','Place or drag overworld landmark artwork','A')]
+           ('Tile behavior','Collision','Inspect and paint terrain movement rules','C'),('Overworld routes','Routes','Select route nodes on the overworld','R'),('Artwork','Artwork','Place or drag overworld landmark artwork','A')]
     for name,label,tip,key in tools:
         if name in ('Objects','Pan'):bar.addSeparator()
         action=QAction(tool_icon(name),label,w);action.setCheckable(True);action.setShortcut(key)

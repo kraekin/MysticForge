@@ -3,7 +3,7 @@ from html import escape
 import re
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDialog,QVBoxLayout,QLabel,QLineEdit,QTreeWidget,QTreeWidgetItem,QPushButton,QSplitter,QTextBrowser,QComboBox,QCheckBox
-from .event_flags import flag_label,NAMES,EVIDENCE
+from .event_flags import flag_label,NAMES,BEHAVIOR_NAMES,KNOWN_NAMES,EVIDENCE
 from .flag_audit import FlagAudit
 
 class FlagBrowser(QDialog):
@@ -13,7 +13,7 @@ class FlagBrowser(QDialog):
         box=QVBoxLayout(self)
         note=QLabel('Choose a flag to learn what it controls. Expand it for individual sources; select a source to read its evidence. This is a project snapshot, not the running game.');note.setWordWrap(True);box.addWidget(note)
         self.search=QLineEdit();self.search.setPlaceholderText('Search a flag, map, action, or associated dialogue…');box.addWidget(self.search)
-        self.scope=QComboBox();self.scope.addItems(['All flags','Verified story meanings','Known uses, unnamed story meaning','No indexed uses']);box.addWidget(self.scope)
+        self.scope=QComboBox();self.scope.addItems(['All flags','Named flags','Known uses, unnamed flags','No indexed uses']);box.addWidget(self.scope)
         split=QSplitter();box.addWidget(split,1)
         self.tree=QTreeWidget();self.tree.setHeaderLabels(['Flag / use','Source','Location']);self.tree.setColumnWidth(0,255);self.tree.setColumnWidth(1,255);split.addWidget(self.tree)
         self.details=QTextBrowser();split.addWidget(self.details);split.setSizes([650,590])
@@ -38,7 +38,7 @@ class FlagBrowser(QDialog):
         query=self.search.text().strip();words=query.lower().replace('$','').split();scope=self.scope.currentIndex()
         exact=int(query.lstrip('$'),16) if re.fullmatch(r'\$?[0-9a-fA-F]{2}',query) else None
         for group,dossier in zip(self.groups,self.audit.dossiers):
-            category=scope==0 or scope==1 and dossier.flag in NAMES or scope==2 and dossier.flag not in NAMES and bool(dossier.evidence) or scope==3 and not dossier.evidence
+            category=scope==0 or scope==1 and dossier.flag in KNOWN_NAMES or scope==2 and dossier.flag not in KNOWN_NAMES and bool(dossier.evidence) or scope==3 and not dossier.evidence
             match=category and (dossier.flag==exact if exact is not None else all(w in dossier.search_text.replace('$','') for w in words))
             group.setHidden(not match);group.setExpanded(bool(words and match))
         item=self.tree.currentItem()
@@ -62,6 +62,7 @@ class FlagBrowser(QDialog):
             places=list(dict.fromkeys(e.explanation for e in dossier.evidence if e.kind in ('Map','Object','Route','Entrance')))
             if places:html+='<h3>Observed effects</h3><ul>'+''.join('<li>'+escape(s)+'</li>' for s in places[:18])+'</ul>'+ (p(f'{len(places)-18} more effects are listed in the source tree.') if len(places)>18 else '')
         if dossier.flag in NAMES:html+='<h3>Name evidence</h3>'+p(EVIDENCE)
+        elif bool(BEHAVIOR_NAMES.get(dossier.flag)):html+='<h3>Name source</h3>'+p('event_flags.py — maintained flag catalogue. Static references are listed separately; the audit does not independently establish every supplied meaning.')
         html+='<h3>Next investigation</h3>'+p(dossier.next_step)
         html+=p('This guide covers indexed static sources. Runtime-dependent and unaudited code can have additional effects. Use Audit coverage for the exact limits.')
         self.details.setHtml(html)
