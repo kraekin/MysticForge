@@ -72,7 +72,12 @@ def writes(p):
   bank[at+1:at+5]=p.fixed('world_gate',n)
   if 22<=n<=55 or n>56:
    at=ACTIONS-START+(n-1)*2;bank[at:at+2]=p.fixed('world_action',n)
- result=[(START,bytes(bank),'expanded overworld tables and preserved ship data')]
+ # Only these ranges are read by the patched tables/routes or preserved ship
+ # pointers. Leave the other gaps to the shared expanded layout allocator.
+ spans=((0,0x80,'route pointers'),(0x200,0x280,'positions'),
+        (0x300,0x440,'gates'),(0x500,0x580,'actions'),
+        (0x600,cursor-START+1,'route streams'),(0x7234,0x8000,'preserved ship data'))
+ result=[(START+a,bytes(bank[a:b]),'expanded overworld '+label) for a,b,label in spans]
  for address,original,target in PATCHES:
   old=b'\xbf'+original.to_bytes(3,'little');at=pc(address)
   hits=[i for i in range(len(p.rom.data)) if p.rom.data.startswith(old,i)]

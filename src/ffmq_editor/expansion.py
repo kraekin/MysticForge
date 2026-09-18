@@ -23,14 +23,22 @@ def verify_profile(rom):
 
 def plan_expanded(project):
     rom=project.rom;verify_profile(rom)
-    from .expanded_content import active,CONTENT_START,writes as content_writes
-    content_active=active(project);landmark_active=project.landmarks is not None and len(project.landmarks)>143;limit=CONTENT_START if content_active or landmark_active else EXPANDED_SIZE
-    from .world_expansion import active as world_active, START as WORLD_START, writes as world_writes
-    if world_active(project):limit=WORLD_START
-    if project.private_dialogues:
-        from .private_dialogue import START
-        limit=min(limit,START)
-    cursor=TABLE+TABLE_SIZE;writes=[];sizes={};pointers={};moved=[]
+    from .expanded_content import active,writes as content_writes
+    from .world_expansion import active as world_active,writes as world_writes
+    from .new_maps import writes as map_writes
+    from .sprite_sets import writes as sprite_writes
+    from .landmarks import writes as landmark_writes
+    from .private_dialogue import writes as dialogue_writes
+    # Account for every exporter before placing relocatable layouts. Fixed tables
+    # keep their verified addresses; only their actual written spans are owned.
+    content=content_writes(project) if active(project) else []
+    world=world_writes(project) if world_active(project) else []
+    groups={'Objects / metatiles / entrances':content,'Overworld routes':world,
+            'Map selectors':map_writes(project),'Sprite descriptors':sprite_writes(project),
+            'Overworld artwork':landmark_writes(project),'NPC events':dialogue_writes(project)}
+    fixed=[(TABLE,bytes(TABLE_SIZE),'layout pointers')]+[w for items in groups.values() for w in items]
+    arena=ExpandedArena(fixed)
+    writes=[];sizes={};pointers={};pending=[]
     changed={r for k,r,_ in project.edits if k=='layout'}
     for resource in list(range(44))+sorted(project.layout_copies):
         data=compressed(project.resource('layout',resource));sizes[resource]=len(data)
@@ -38,18 +46,59 @@ def plan_expanded(project):
         if resource<44 and len(data)<=rom.layouts[resource].end-rom.layouts[resource].start:
             pointers[resource]=rom.layouts[resource].start
             if resource in changed:writes.append((pointers[resource],data,f'layout {resource:02X}'))
-        else:
-            if cursor//0x8000!=(cursor+len(data)-1)//0x8000:cursor=(cursor//0x8000+1)*0x8000
-            if cursor+len(data)>limit:raise FormatError('Expanded layout storage is full')
-            pointers[resource]=cursor;writes.append((cursor,data,f'layout {resource:02X} (expanded)'));moved.append(resource);cursor+=len(data)
+        else:pending.append((resource,data))
+    # Largest first avoids stranding a large layout behind smaller allocations.
+    for resource,data in sorted(pending,key=lambda item:(-len(item[1]),item[0])):
+        offset=arena.allocate(len(data));pointers[resource]=offset
+        writes.append((offset,data,f'layout {resource:02X} (expanded)'))
     table=bytearray(TABLE_SIZE)
     for resource,offset in pointers.items():table[3*resource:3*resource+3]=cpu_address(offset).to_bytes(3,'little')
     writes.append((TABLE,bytes(table),'expanded 64-entry layout table'))
     for address in LOADERS:
         writes.append((pc(address)+1,cpu_address(TABLE).to_bytes(3,'little'),'layout table address operand'))
         writes.append((pc(address)+10,cpu_address(TABLE+2).to_bytes(3,'little'),'layout table bank operand'))
-    # Includes the table and any bank-alignment padding, not just payload bytes.
-    if content_active:writes.extend(content_writes(project))
-    if world_active(project):writes.extend(world_writes(project))
-    used=cursor-BASE_SIZE+(EXPANDED_SIZE-limit)
-    return LayoutPlan(writes,pointers,sizes,(PoolBudget(tuple(pointers),EXPANDED_SIZE-BASE_SIZE,used,False),),TABLE,used)
+    writes.extend(content);writes.extend(world)
+    used=EXPANDED_SIZE-BASE_SIZE-arena.free
+    breakdown={name:sum(len(data) for at,data,_ in items if at>=BASE_SIZE) for name,items in groups.items()}
+    breakdown['Layout pointer table']=TABLE_SIZE
+    breakdown['Relocated terrain']=sum(len(data) for _,data in pending)
+    plan=LayoutPlan(writes,pointers,sizes,(PoolBudget(tuple(pointers),EXPANDED_SIZE-BASE_SIZE,used,False),),TABLE,used)
+    plan.storage={'categories':breakdown,'largest_layout_gap':arena.largest}
+    return plan
+
+
+class ExpandedArena:
+    """Deterministic allocator over verified appended ROM only, never base gaps."""
+    def __init__(self,writes):
+        occupied=[]
+        for at,data,label in writes:
+            if at<BASE_SIZE:
+                if at+len(data)>BASE_SIZE:raise FormatError('Resource crosses into expanded storage')
+                continue
+            end=at+len(data)
+            if end>EXPANDED_SIZE:raise FormatError('Resource exceeds expanded storage')
+            if data:occupied.append((at,end,label))
+        occupied.sort()
+        cursor=BASE_SIZE;gaps=[]
+        for start,end,label in occupied:
+            if start<cursor:raise FormatError('Overlapping expanded resources: '+label)
+            if start>cursor:gaps.append((cursor,start))
+            cursor=end
+        if cursor<EXPANDED_SIZE:gaps.append((cursor,EXPANDED_SIZE))
+        # Every span is bank-contained; remaining fragments remain reusable.
+        self.gaps=[]
+        for start,end in gaps:
+            while start<end:
+                boundary=min(end,((start//0x8000)+1)*0x8000)
+                self.gaps.append((start,boundary));start=boundary
+    @property
+    def free(self):return sum(end-start for start,end in self.gaps)
+    @property
+    def largest(self):return max((end-start for start,end in self.gaps),default=0)
+    def allocate(self,size):
+        candidates=[(end-start,start,i) for i,(start,end) in enumerate(self.gaps) if end-start>=size]
+        if not candidates:raise FormatError(f'Expanded layout storage is full for a {size:,}-byte bank-local layout; {self.free:,} bytes remain in total, largest block {self.largest:,}.')
+        _,start,i=min(candidates);end=self.gaps[i][1]
+        if start+size==end:self.gaps.pop(i)
+        else:self.gaps[i]=(start+size,end)
+        return start

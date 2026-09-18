@@ -48,6 +48,7 @@ class LayoutPlan:
     pools:tuple
     table:int=POINTERS
     allocated:int=0
+    storage:dict|None=None
 
 def plan_layouts(project,strict=True):
     rom=project.rom;verify_pools(rom)

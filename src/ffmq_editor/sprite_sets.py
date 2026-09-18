@@ -137,8 +137,11 @@ def writes(p):
     if not p.sprite_sets:return []
     descriptors={i:original(p.base_rom,i) for i in range(COUNT)}
     descriptors.update({COUNT+a:c['data'] for a,c in p.sprite_sets.items()})
-    table=bytearray(512);data=bytearray()
-    for i,raw in sorted(descriptors.items()):table[i*2:i*2+2]=len(data).to_bytes(2,'little');data.extend(raw)
+    table=bytearray(512);data=bytearray();offsets={}
+    for i,raw in sorted(descriptors.items()):
+        raw=bytes(raw)
+        if raw not in offsets:offsets[raw]=len(data);data.extend(raw)
+        table[i*2:i*2+2]=offsets[raw].to_bytes(2,'little')
     if DATA+len(data)>END:raise FormatError('Private sprite descriptor bank full')
     result=[(TABLE,bytes(table),'sprite descriptor pointers'),(DATA,bytes(data),'sprite descriptors')]
     for addr,old,target in [(0x0b8200,0x0b8892,0x1f8800)]+[(a,0x0b88fc,0x1f8a00) for a in LOADS]:

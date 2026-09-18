@@ -2,12 +2,12 @@
 from copy import deepcopy
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QTreeWidget,QTreeWidgetItem,QComboBox,QPlainTextEdit,QSpinBox,QFormLayout,QMessageBox,QDialogButtonBox)
-from .custom_events import compile_actions,text_calls,label
+from .custom_events import compile_actions,text_calls,label,branches,MUSIC_IDS,SOUND_IDS
 from .private_dialogue import assign_record,plan,DATA,END
 from .layout_storage import cpu_address
 
 ROLE=Qt.ItemDataRole.UserRole
-KINDS=[('say','Say something'),('if_flag','Check a game flag'),('set_flag','Set a game flag'),('clear_flag','Clear a game flag'),('wait','Wait'),('call_text','Show existing NPC dialogue'),('face_player','Turn the hero'),('end','End conversation')]
+KINDS=[('say','Say something'),('choice','Ask a Yes / No question'),('give_item','Give an item / spell / equipment'),('music','Play music'),('sound','Play a sound effect'),('screen','Screen effect'),('if_flag','Check a game flag'),('set_flag','Set a game flag'),('clear_flag','Clear a game flag'),('wait','Wait'),('call_text','Show existing NPC dialogue'),('face_player','Turn the hero'),('end','End conversation')]
 
 class ActionDialog(QDialog):
  def __init__(self,parent,kind,node=None):
@@ -42,6 +42,32 @@ class ActionDialog(QDialog):
     from .dialogue_preview import DialoguePreview
     self.preview=DialoguePreview(self,resolve_preview(parent.project.base_rom,self.text.toPlainText()));self.preview.show()
    wrap.clicked.connect(wrap_text);preview.clicked.connect(preview_text)
+  elif kind=='choice':
+   form.addRow('Question',self.text);self.text.setPlainText(node['text'] if node else '')
+   from .dialogue_tokens import add_token_picker
+   tokens=QHBoxLayout();box.addLayout(tokens);self.token,self.insert_token=add_token_picker(tokens,self.text,parent.project.base_rom)
+   note=QLabel('The NPC asks this question, then the hero chooses Yes or No. Cancel also follows No. Add the response steps beneath each branch in the event tree.');note.setWordWrap(True);box.addWidget(note)
+  elif kind=='give_item':
+   from .events import inline_name
+   from .event_editing import event_rom
+   rom=event_rom(parent.project);self.item=QComboBox();self.quantity=QSpinBox()
+   for ident in range(64):self.item.addItem(f'{inline_name(rom,0x1e,ident)} (${ident:02X})',ident)
+   self.item.setCurrentIndex(node['item'] if node else 16)
+   def quantity_limit():self.quantity.setRange(1,99 if self.item.currentData() in range(16,20) else 1)
+   self.item.currentIndexChanged.connect(quantity_limit);quantity_limit();self.quantity.setValue(node['quantity'] if node else 1)
+   form.addRow('Reward',self.item);form.addRow('Quantity (up to)',self.quantity)
+   note=QLabel('Consumables stop at 99: a partial grant follows Received; an already full stack follows Cannot carry. Equipment and spells use the game’s normal grant behavior. Add a Say step for the reward message. For a one-time gift, check a flag first and set it only in Received. Key items alone do not run their original quest scripts.');note.setWordWrap(True);box.addWidget(note)
+  elif kind in ('music','sound'):
+   self.audio=QComboBox()
+   for ident in (MUSIC_IDS if kind=='music' else SOUND_IDS):self.audio.addItem(f"{'Music track' if kind=='music' else 'Sound effect'} ${ident:02X}",ident)
+   if node:self.audio.setCurrentIndex(self.audio.findData(node['id']))
+   form.addRow('Audio',self.audio)
+   note=QLabel('These IDs are used in original field events. Audio plays in the game, not in this dialog. Music continues after the conversation; select another music step to change it again.');note.setWordWrap(True);box.addWidget(note)
+  elif kind=='screen':
+   self.effect=QComboBox();self.effect.addItem('Shake horizontally','shake');self.effect.addItem('Fade to black, pause briefly, then fade back in','fade')
+   if node:self.effect.setCurrentIndex(self.effect.findData(node['effect']))
+   form.addRow('Effect',self.effect)
+   note=QLabel('Effects finish before the next step. The paired fade always restores brightness.');note.setWordWrap(True);box.addWidget(note)
   elif kind=='face_player':
    self.direction=QComboBox();self.direction.addItems(['Up','Right','Down','Left']);self.direction.setCurrentIndex(node['direction'] if node else 0);form.addRow('Face',self.direction)
   elif kind=='end':
@@ -64,6 +90,10 @@ class ActionDialog(QDialog):
   if k=='say':
    n['text']=self.text.toPlainText();speaker=self.speaker.currentData();n['speaker']=speaker[0]
    if speaker[0]=='object':n.update(speaker_area=speaker[1],speaker_object=speaker[2])
+  elif k=='choice':n['text']=self.text.toPlainText()
+  elif k=='give_item':n.update(item=self.item.currentData(),quantity=self.quantity.value())
+  elif k in ('music','sound'):n['id']=self.audio.currentData()
+  elif k=='screen':n['effect']=self.effect.currentData()
   elif k=='face_player':n['direction']=self.direction.currentIndex()
   elif k=='end':pass
   elif k=='wait':n['frames']=self.frames.value()
@@ -71,6 +101,7 @@ class ActionDialog(QDialog):
   else:
    n['flag']=self.flag.currentData()
    if k=='if_flag':n.update(is_set=self.condition.currentData(),then=deepcopy(self.node['then']) if self.node else [],otherwise=deepcopy(self.node['otherwise']) if self.node else [])
+  for key,_ in branches(n):n[key]=deepcopy(self.node[key]) if self.node else []
   return n
  def accept_checked(self):
   try:compile_actions(self.parent().project,[self.value()],cpu_address(DATA))
@@ -86,7 +117,7 @@ class CustomEventEditor(QDialog):
   self.saved=deepcopy(self.actions);self.history=[];self.future=[]
   self.setWindowTitle('MysticForge — NPC event editor');self.resize(1050,750);box=QVBoxLayout(self)
   heading=QLabel(f'{self.project.rom.areas[area].name} · Object ${index:02X}');heading.setStyleSheet('font-size:20px;font-weight:bold');box.addWidget(heading)
-  note=QLabel('Build this NPC’s interaction from ordered steps. Select Then or Otherwise to add steps inside a condition. Moving a condition moves its entire block. Changes stay here until Apply to project.');note.setWordWrap(True);box.addWidget(note)
+  note=QLabel('Build this NPC’s interaction from ordered steps. Select a branch (Then, Yes, Received, etc.) to add steps inside it. Moving a branching step moves its entire block. Changes stay here until Apply to project.');note.setWordWrap(True);box.addWidget(note)
   row=QHBoxLayout();box.addLayout(row);self.kind=QComboBox()
   for k,title in KINDS:self.kind.addItem(title,k)
   row.addWidget(self.kind,1)
@@ -100,9 +131,16 @@ class CustomEventEditor(QDialog):
   for button in (self.up,self.down,self.undo_button,self.redo_button):row.addWidget(button)
   self.up.clicked.connect(lambda:self.move(-1));self.down.clicked.connect(lambda:self.move(1));self.undo_button.clicked.connect(self.undo);self.redo_button.clicked.connect(self.redo)
   self.status=QLabel();self.status.setWordWrap(True);box.addWidget(self.status)
-  limit=QLabel('Available: speaker dialogue, set/clear flag conditions, flag changes, waits, hero facing, early return, and verified existing conversations. Item/gold rewards and calls to complex quest scripts are not enabled yet.');limit.setWordWrap(True);box.addWidget(limit)
+  limit=QLabel('Choices and rewards have editable outcome branches. Reward messages and one-time flags are explicit steps. Gold grants and arbitrary quest-script calls are not enabled yet.');limit.setWordWrap(True);box.addWidget(limit)
   row=QHBoxLayout();box.addLayout(row);self.apply_button=QPushButton('Apply to project');row.addWidget(self.apply_button);self.apply_button.clicked.connect(self.apply)
   close=QPushButton('Close');row.addWidget(close);close.clicked.connect(self.close);self.rebuild()
+ def action_label(self,node):
+  if node['kind']=='give_item':
+   from .events import inline_name
+   from .event_editing import event_rom
+   name=inline_name(event_rom(self.project),0x1e,node['item'])
+   return f"Give {name} × {node['quantity']}"
+  return label(node)
  def resolve(self,path):
   result=self.actions
   for part in path:result=result[part]
@@ -110,14 +148,14 @@ class CustomEventEditor(QDialog):
  def path(self):
   item=self.tree.currentItem();return tuple(item.data(0,ROLE)) if item else ()
  def rebuild(self,selected=()):
-  self.tree.clear();root=QTreeWidgetItem(['Actions — run from top to bottom']);root.setData(0,ROLE,());self.tree.addTopLevelItem(root);items={():root}
+  self.tree.blockSignals(True);self.tree.clear();root=QTreeWidgetItem(['Actions — run from top to bottom']);root.setData(0,ROLE,());self.tree.addTopLevelItem(root);items={():root}
   def populate(parent,nodes,path):
    for i,n in enumerate(nodes):
-    key=path+(i,);item=QTreeWidgetItem([label(n)]);item.setData(0,ROLE,key);parent.addChild(item);items[key]=item
-    if n['kind']=='if_flag':
-     for branch,title in [('then','Then — condition matches'),('otherwise','Otherwise — condition does not match')]:
+    key=path+(i,);item=QTreeWidgetItem([self.action_label(n)]);item.setData(0,ROLE,key);parent.addChild(item);items[key]=item
+    if branches(n):
+     for branch,title in branches(n):
       bkey=key+(branch,);b=QTreeWidgetItem([title]);b.setData(0,ROLE,bkey);item.addChild(b);items[bkey]=b;populate(b,n[branch],bkey)
-  populate(root,self.actions,());self.tree.expandAll();self.tree.setCurrentItem(items.get(selected,root));self.selection();self.update_status()
+  populate(root,self.actions,());self.tree.expandAll();self.tree.setCurrentItem(items.get(selected,root));self.tree.blockSignals(False);self.selection();self.update_status()
  def selection(self):
   path=self.path();node=self.resolve(path);action=isinstance(node,dict)
   for b in (self.edit_button,self.duplicate,self.delete):b.setEnabled(action)
@@ -144,7 +182,7 @@ class CustomEventEditor(QDialog):
  def remove(self):
   path=self.path()
   if not path or not isinstance(self.resolve(path),dict):return
-  if self.resolve(path)['kind']=='if_flag' and QMessageBox.question(self,'Delete condition?','Delete this condition and all steps in both branches?',QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No)!=QMessageBox.StandardButton.Yes:return
+  if branches(self.resolve(path)) and QMessageBox.question(self,'Delete branching step?','Delete this step and all steps in its branches?',QMessageBox.StandardButton.Yes|QMessageBox.StandardButton.No)!=QMessageBox.StandardButton.Yes:return
   self.change(lambda:self.resolve(path[:-1]).pop(path[-1]),path[:-1])
  def move(self,delta):
   path=self.path()

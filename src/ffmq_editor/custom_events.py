@@ -1,7 +1,24 @@
 """Structured, bounded custom NPC event compiler. No arbitrary bytecode input."""
 from .rom import pc,FormatError
 
+# Only IDs observed in decoded original field event sequences are offered.
+MUSIC_IDS=(5,12,19,20)
+SOUND_IDS=(5,8,11,12,18,20,21,22,23,27,37,39,40,43,48)
+BRANCHES={
+ 'if_flag':(('then','Then — condition matches'),('otherwise','Otherwise — condition does not match')),
+ 'choice':(('yes','Yes'),('no','No / Cancel')),
+ 'give_item':(('received','Received — at least one added'),('full','Cannot carry — nothing added')),
+}
+
+def branches(node):return BRANCHES.get(node['kind'],())
+
 GUARDS={
+ 0x00dad1:'e220ce6601a59ec910902ac914901cc9dd9022f00badb010200adb8db0108015ad3010200adb8d3010800a226ada00200adb9d9f0eee660160c963900b9c6601a9801c6501a963606d6601c964900ce96349ff6d66018d6601a96360a59e226ada00c963009006a9ff00859e60a59e08c230da5ae230c910903cc9149026c9209040c92f904ac9dd9068d00cad3010c963b077ee30108072adb010c963b06beeb0108066a8226ada00c963b05d989d9e0efe9f0e80540bf4a60e2b224e97002b8048e9130bf438102b224e97002b803a48c926f03b38e9200bf432102b224e97002b688d3110a000201191a9040cd400801848e92e0bf435102b224e97002b68a000201191a9040cd400c2307afa286048a9021cb210',
+ 0x00da6a:'08e230c9fff020c9ddb025a200dd9e0ef019e8e8e008d0f5a9ffa200dd9e0ef006e8e8e008d0f5a9008013bd9f0e800ed007ad3010a2928005adb010a212286b',
+ 0x038dac:'29020f6001054a5f01057e1104000c0300010d010000000fb400054fb30012610110c40005a0c000d98d10c2001263010f5f01057f0550610105456301126301296a30176a051db6000208618e05e3100700055a8000050900278e05fd4b188e100700055a0080050900338e100700055a000c057d004f8e0af98d051eb60002083f8e0f020000051eb60002083f8e053bff000524b600ba00020cb800001702174b00',
+ 0x01b4d1:'adee1929ff000aaa7cdcb4f6b41ab51bb524b524b524b531b531b531b51ab51ab5f6b41ab5a01000ad0019aa8a38e902008d001920cf828a186902008d001920cf8288d0e78e00196060a90a008d2b194c02d6e220c21020d882ce1001d0f860e220c21020d882ad1001c90ff005ee100180f160',
+ 0x01ba91:'a9080f8d010508e220c210adee19291f8d00052860adee1929ff00da08e220c210a20f888e06058d050528fa60',
+
  0x00a168:'a717e61729ff00e220854fc230a90300a231a84c1ca7a717e61729ff00e220854fc230a90300a295a84c1ca7',
  0x00a874:'a717e617e617aaaf67337ea8a717e61729ff003a8b547e00ab98c9d93590034c1f9d8f67337e60',
  0x00a89b:'a717e617e617a8a717e61729ff004849ffff386f67337e8f67337eaa683a54007e60',
@@ -59,7 +76,7 @@ def validate_speaker_maps(record,areas):
   for node in nodes:
    if node['kind']=='say' and node.get('speaker')=='object':
     if any(area!=node['speaker_area'] for area in areas):raise FormatError('An NPC speaker belongs to a different map setup. Choose a speaker on this map.')
-   if node['kind']=='if_flag':visit(node['then']);visit(node['otherwise'])
+   for key,_ in branches(node):visit(node[key])
  visit(record.get('actions',[]))
 
 def speaker_label(n):
@@ -87,7 +104,7 @@ def compile_actions(p,actions,address):
   for n in nodes:
    count+=1
    if count>256 or not isinstance(n,dict):raise FormatError('An event supports at most 256 actions.')
-   kind=n.get('kind');keys={'say':{'text'},'set_flag':{'flag'},'clear_flag':{'flag'},'if_flag':{'flag','then','otherwise'},'wait':{'frames'},'call_text':{'npc'},'face_player':{'direction'},'end':set()}.get(kind)
+   kind=n.get('kind');keys={'say':{'text'},'set_flag':{'flag'},'clear_flag':{'flag'},'if_flag':{'flag','then','otherwise'},'wait':{'frames'},'call_text':{'npc'},'face_player':{'direction'},'end':set(),'choice':{'text','yes','no'},'give_item':{'item','quantity','received','full'},'music':{'id'},'sound':{'id'},'screen':{'effect'}}.get(kind)
    optional={'speaker','speaker_area','speaker_object'} if kind=='say' else {'is_set'} if kind=='if_flag' else set()
    if keys is None or not keys|{'kind'}<=set(n) or set(n)-(keys|{'kind'}|optional):raise FormatError('Unsupported custom event action or fields.')
    if kind=='say':
@@ -103,6 +120,38 @@ def compile_actions(p,actions,address):
      emit(bytes((0x1b if mode=='hero' else 0x1a,ident)))
     emit(compile_text(n['text'])[:-1]+bytes.fromhex('07578403'))
     if mode!='npc':emit(bytes.fromhex('051e4f0002'))
+   elif kind=='choice':
+    # Original band NPC $03EB2E: alternate window, two rows, $038DAC menu.
+    # Close/restore on BOTH paths before user actions (including early returns).
+    emit(bytes.fromhex('0731a803')+compile_text(n['text'])[:-1])
+    emit(bytes.fromhex('051d4f00021b00070ea803'))
+    emit(compile_text('   Yes\n   No')[:-1])
+    emit(bytes.fromhex('0d5f010102174b07ac8d03'))
+    emit(bytes.fromhex('0b00'));yes_at=len(raw);emit(b'\x00\x00')
+    cleanup=bytes.fromhex('07578403051e4f0002')
+    emit(cleanup);body(n['no'],depth+1);emit(b'\x0a');end_at=len(raw);emit(b'\x00\x00')
+    raw[yes_at:yes_at+2]=pointer();emit(cleanup);body(n['yes'],depth+1);raw[end_at:end_at+2]=pointer()
+   elif kind=='give_item':
+    item=field(n,'item',0,63);quantity=field(n,'quantity',1,99)
+    if item not in range(0x10,0x14) and quantity!=1:raise FormatError('Only potions, seeds and refreshers support quantities greater than one.')
+    # Native $00DB2D checks 99 then grants the first item. $00DAD1 adds
+    # the remainder, clamping consumables at 99. No chest collection flags.
+    emit(bytes((0x0d,0x65,1,0,quantity,5,0x3b,item)))
+    emit(bytes.fromhex('092ddb000bff'));full_at=len(raw);emit(b'\x00\x00')
+    emit(bytes.fromhex('09d1da00'));body(n['received'],depth+1)
+    emit(b'\x0a');end_at=len(raw);emit(b'\x00\x00')
+    raw[full_at:full_at+2]=pointer();body(n['full'],depth+1);raw[end_at:end_at+2]=pointer()
+   elif kind in ('music','sound'):
+    ident=field(n,'id',0,255)
+    if ident not in (MUSIC_IDS if kind=='music' else SOUND_IDS):raise FormatError('Choose an audio ID verified in original field events.')
+    emit(bytes((0x2c,ident,0x26 if kind=='music' else 0x27)))
+   elif kind=='screen':
+    if n['effect']=='shake':emit(bytes.fromhex('2c0020'))
+    elif n['effect']=='fade':
+     # Start at full brightness: native fade-out decrements before testing.
+     # A single paired action cannot strand subsequent dialogue in darkness.
+     emit(bytes.fromhex('0c10010f2c032005e11e2c0620'))
+    else:raise FormatError('Choose screen shake or fade out and back in.')
    elif kind=='face_player':emit(bytes((0x2c,field(n,'direction',0,3)<<4,0x54)))
    elif kind=='end':emit(b'\x00')
    elif kind in ('set_flag','clear_flag'):emit(bytes((0x23 if kind=='set_flag' else 0x2b,field(n,'flag',0,255))))
@@ -111,7 +160,7 @@ def compile_actions(p,actions,address):
     ident=field(n,'npc',0,123);target=text_calls(p).get(ident)
     if target is None:raise FormatError('Only verified text-only NPC events can be called in this version.')
     emit(bytes.fromhex('0731a803')+b'\x07'+target[0].to_bytes(3,'little')+bytes.fromhex('07578403'))
-   else:
+   elif kind=='if_flag':
     # Branch if set to Then; Otherwise falls through. Each fixup is rebuilt.
     emit(bytes((0x2e,field(n,'flag',0,255))));to_then=len(raw);emit(b'\x00\x00')
     is_set=n.get('is_set',True)
@@ -132,6 +181,10 @@ def record_bytes(p,record,address):
 def label(n):
  from .event_flags import flag_label
  k=n['kind']
+ if k=='choice':return 'Ask Yes / No: '+n['text'].replace('\n',' / ')[:100]
+ if k=='give_item':return f"Give item ${n['item']:02X} × {n['quantity']}"
+ if k in ('music','sound'):return f"Play {'music track' if k=='music' else 'sound effect'} ${n['id']:02X}"
+ if k=='screen':return 'Shake screen' if n['effect']=='shake' else 'Fade out and back in'
  if k=='say':return speaker_label(n)+' says: '+n['text'].replace('\n',' / ')[:100]
  if k=='if_flag':return 'If '+flag_label(n['flag'])+(' is set' if n.get('is_set',True) else ' is clear')
  if k in ('set_flag','clear_flag'):return ('Set ' if k=='set_flag' else 'Clear ')+flag_label(n['flag'])
