@@ -1,11 +1,19 @@
 # MysticForge 0.2-09-2026 • FFMQ Editor • Early Alpha -- Use at your own risk, not everything is complete, and some stuff is still read only.
 
+Targets the 1.0 USA release of the rom, but has an option to fix the life spell bug. I will look at adding 1.1 support in the future. 
 
 <img width="908" height="703" alt="python3 13_AG2UvXltb1" src="https://github.com/user-attachments/assets/506db728-769a-4cbb-b1b6-ee6ede5d339c" />
 
-updated to version 0.2 but have not added a nuitka build for it yet, just download and run the python script, or wait and ill upload the release soon
+Sept 18, 2026:
+-Added a bunch of event stuff. You can now make new NPC's and give them their own dialogue, or even a whole event. Actions are currently limited, but some basics are there. Everyhing seems to work, might have some bugs. 
+- Variou other additions and fixes. just play around to see what is there. Make sure to keep backups and such so nothing breaks.
 
-Targets the 1.0 USA release of the rom, but has an option to fix the life spell bug. I will look at adding 1.1 support in the future. 
+Known issues:
+New overworld locations cannot be named yet, they seem to take the name from the size template used for the map...I think, more research is needed.
+
+
+
+
 
 I have tested everything I could so far, but have not gone through the game completely to verify that everything works as intended. As such, there may be bugs, issues, or game breaking shit that happens.
 
