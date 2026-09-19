@@ -236,3 +236,9 @@ def npc_entry(rom,value):
     if not 0<=value<124:return None
     pointer=u16(rom.data,pc(0x03D636)+value*2)
     return 0x030000|pointer if pointer>=0x8000 else None
+
+
+def opening_entry(rom):
+    """Native startup at $009A6A, verified separately from world/NPC tables."""
+    expected=bytes.fromhex('a962f88517e220a903851920759d')
+    return 0x03f862 if read(rom.data,pc(0x009a6a),len(expected))==expected else None

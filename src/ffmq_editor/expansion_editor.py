@@ -4,10 +4,10 @@ from PySide6.QtGui import QUndoCommand
 from PySide6.QtWidgets import QDialog,QVBoxLayout,QHBoxLayout,QLabel,QPushButton,QMessageBox
 
 def snapshot(project):
-    return deepcopy((project.expanded,project.layout_copies,project.layout_bindings,project.content,project.world,project.landmarks,project.newmaps,project.sprite_sets,project.event_edits,project.private_dialogues,project.setup_labels,project.edits))
+    return deepcopy((project.expanded,project.layout_copies,project.layout_bindings,project.content,project.world,project.landmarks,project.newmaps,project.sprite_sets,project.event_edits,project.private_dialogues,project.setup_labels,project.map_sizes,project.story_scene,project.edits))
 
 def restore(project,state):
-    project.expanded,project.layout_copies,project.layout_bindings,project.content,project.world,project.landmarks,project.newmaps,project.sprite_sets,project.event_edits,project.private_dialogues,project.setup_labels,project.edits=deepcopy(state)
+    project.expanded,project.layout_copies,project.layout_bindings,project.content,project.world,project.landmarks,project.newmaps,project.sprite_sets,project.event_edits,project.private_dialogues,project.setup_labels,project.map_sizes,project.story_scene,project.edits=deepcopy(state)
     from .new_maps import sync_catalog
     sync_catalog(project)
 
@@ -27,7 +27,7 @@ def set_expansion(w,enabled):
     w.end_stroke();p=w.project
     if p.expanded==enabled:return True
     from .expanded_content import active
-    if not enabled and (p.private_dialogues or p.layout_copies or active(p) or p.world["routes"] or p.world["nodes"] or (p.landmarks is not None and len(p.landmarks)>143)):
+    if not enabled and (p.story_scene or p.private_dialogues or p.layout_copies or active(p) or p.world["routes"] or p.world["nodes"] or (p.landmarks is not None and len(p.landmarks)>143)):
         QMessageBox.information(w,'Content needs expansion','This project contains expanded resources. Keep expanded export enabled, or undo their creation first.');return False
     before=snapshot(p);after=(enabled,*before[1:])
     w.stack.push(StructureCommand(w,before,after,'Enable 1 MiB export' if enabled else 'Use original ROM size'))

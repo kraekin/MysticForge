@@ -13,8 +13,8 @@ class EventEditor(QDialog):
         super().__init__(window);self.window=window;self.project=window.project;self.entry=entry;self.extent=extent;self.current=None;self.loading=False
         self.setWindowTitle(f'MysticForge — Edit event ${entry:06X}');self.resize(1080,760)
         box=QVBoxLayout(self)
-        heading=QLabel('Shared dialogue / parameters');heading.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(heading)
-        note=QLabel('Changes apply to this shared event everywhere it is used. Text stays inside its original byte span; calls, branch destinations, page/window commands and shared dictionary definitions are preserved. Apply changes to the project, then export a ROM copy or patch.');note.setWordWrap(True);box.addWidget(note)
+        heading=QLabel('Hill of Destiny — opening scene' if entry==0x03f862 else 'Shared dialogue / scene actions');heading.setStyleSheet('font-size:22px;font-weight:bold');box.addWidget(heading)
+        note=QLabel('Changes apply to this shared event everywhere it is used. Text stays inside its original byte span. Verified movement groups expose direction and distance controls. Calls, branch destinations, page/window commands and shared dictionary definitions are preserved. Apply changes to the project, then export a ROM copy or patch.');note.setWordWrap(True);box.addWidget(note)
         split=QSplitter();box.addWidget(split,1)
         left=QWidget();layout=QVBoxLayout(left);split.addWidget(left)
         layout.addWidget(QLabel('Editable parts of this event'))
@@ -33,6 +33,8 @@ class EventEditor(QDialog):
         from .dialogue_tokens import add_token_picker
         self.token,self.insert=add_token_picker(row,self.text,self.project.base_rom)
         self.preview_button=QPushButton('Preview dialogue…');self.preview_button.clicked.connect(self.preview);row.addWidget(self.preview_button)
+        from .scene_command_widget import SceneCommandWidget
+        self.movement=SceneCommandWidget();form.addWidget(self.movement,1);self.movement.changed.connect(self.update_budget)
         self.spin=QSpinBox();form.addWidget(self.spin)
         self.flag=QComboBox()
         for i in range(256):self.flag.addItem(flag_label(i),i)
@@ -49,25 +51,34 @@ class EventEditor(QDialog):
         if self.parts:self.list.setCurrentRow(0)
         else:
             self.heading.setText('No safely editable parts in this entry. Open a called event from Event flow to edit its dialogue or supported parameters. Shared dictionary bodies and overlapping entry points remain protected.')
-            for w in (self.text,self.token,self.insert,self.preview_button,self.spin,self.flag,self.apply_button,self.revert,self.original):w.setEnabled(False)
+            for w in (self.text,self.token,self.insert,self.preview_button,self.movement,self.spin,self.flag,self.apply_button,self.revert,self.original):w.setEnabled(False)
 
     def action_title(self,s):
+        if s.kind=='field':return 'Scene movement'
         if s.kind=='text':return 'Dialogue'
         if s.raw[:2]==b'\x05\xe1':return 'Wait'
         if s.raw[:2]==b'\x05\x0b':return 'If game flag is clear'
         return {0x23:'Set game flag',0x2b:'Clear game flag',0x2e:'If game flag is set'}[s.raw[0]]
 
     def part_title(self,s):
+        if s.kind=='field':
+            from .scene_commands import pairs,family
+            from .field_actions import field_action
+            raw=bytes(self.project.event_edits.get(s.address,{}).get('value',s.raw))
+            steps=[field_action(raw[i+1],raw[i]) for i in pairs(s.raw) if family(s.raw[i+1],s.raw[i])]
+            return f'Movement group · {len(steps)} editable steps · '+steps[0]
         value=self.project.event_edits.get(s.address,{}).get('value')
         if value is None:value=tokens(self.project.base_rom,s.raw) if s.kind=='text' else s.raw[s.operand]
         return self.action_title(s)+': '+(value or '(empty)' if s.kind=='text' else f'{value} frames' if s.raw[:2]==b'\x05\xe1' else flag_label(value))
 
     def value(self):
+        if self.current.kind=='field':return list(self.movement.raw)
         if self.current.kind=='text':return self.text.toPlainText()
         return self.spin.value() if self.current.raw[:2]==b'\x05\xe1' else self.flag.currentData()
 
     def saved_value(self):
         s=self.current;r=self.project.event_edits.get(s.address)
+        if s.kind=='field':return r['value'] if r else list(s.raw)
         return r['value'] if r else tokens(self.project.base_rom,s.raw) if s.kind=='text' else s.raw[s.operand]
 
     def dirty(self):return self.current is not None and self.value()!=self.saved_value()
@@ -87,11 +98,12 @@ class EventEditor(QDialog):
         if self.current is None:return
         self.loading=True;s=self.current;istext=s.kind=='text';wait=s.raw[:2]==b'\x05\xe1'
         for w in (self.text,self.token,self.insert,self.preview_button):w.setVisible(istext)
-        self.spin.setVisible(not istext and wait);self.flag.setVisible(not istext and not wait)
-        self.heading.setText(f'{self.action_title(s)} · ${s.address:06X}'+ ('\nName tokens stay dynamic. Enter adds a line break; message/page commands remain in Event flow.' if istext else '\nOnly the selected parameter changes. The action and its branch destinations stay the same.'))
+        self.movement.setVisible(s.kind=='field');self.spin.setVisible(not istext and wait);self.flag.setVisible(s.kind=='parameter' and not wait)
+        self.heading.setText(f'{self.action_title(s)} · ${s.address:06X}'+ ('\nName tokens stay dynamic. Enter adds a line break; message/page commands remain in Event flow.' if istext else '\nSelect a movement step below. Protected steps remain in their original order.' if s.kind=='field' else '\nOnly the selected parameter changes. The action and its branch destinations stay the same.'))
         item=self.list.item(self.parts.index(s));title=self.part_title(s);item.setText(title.replace('\n',' / ')[:110]);item.setToolTip(f'${s.address:06X} · {len(s.raw)} bytes\n'+title)
         value=self.saved_value()
-        if istext:self.text.setPlainText(value)
+        if s.kind=='field':self.movement.load(s.raw,value)
+        elif istext:self.text.setPlainText(value)
         elif wait:self.spin.setRange(s.minimum,s.maximum);self.spin.setValue(value)
         else:self.flag.setCurrentIndex(value)
         self.status.clear();self.loading=False;self.update_budget()

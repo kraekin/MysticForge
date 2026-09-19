@@ -65,17 +65,15 @@ class Renderer:
         palette_values=list(project.palette(state.palette))
         for index,value in self.animation.palette(area_id,frame).items():palette_values[56+index]=value
         colors = np.array([color_rgb(v) for v in palette_values],dtype=np.uint8).reshape(8,8,3)
-        atlas = np.zeros((128,16,16,4),dtype=np.uint8)
-        for index in range(128):
-            for quadrant in range(4):
-                tile = int(graphics[index,quadrant])
-                pixels = tiles[tile]
-                if bits[index] & (1 << quadrant):
-                    pixels = pixels[:,::-1]
-                palette = ((int(bits[index]) >> 4)&7) if bits[index]&128 else int(tile_palettes[tile])
-                y, x = (quadrant//2)*8, (quadrant%2)*8
-                atlas[index,y:y+8,x:x+8,:3] = colors[palette][pixels]
-                atlas[index,y:y+8,x:x+8,3] = np.where(pixels==0,0,255)
+        # Assemble all four quadrants together; no Python loop per metatile.
+        pixels=tiles[graphics]
+        flips=(bits[:,None] & (1 << np.arange(4)))!=0
+        pixels=np.where(flips[:,:,None,None],pixels[:,:,:,::-1],pixels)
+        palettes=np.where((bits[:,None]&128)!=0,(bits[:,None]>>4)&7,tile_palettes[graphics])
+        quadrants=np.empty((128,4,8,8,4),dtype=np.uint8)
+        quadrants[:,:,:,:,:3]=colors[palettes[:,:,None,None],pixels]
+        quadrants[:,:,:,:,3]=np.where(pixels==0,0,255)
+        atlas=quadrants.reshape(128,2,2,8,8,4).transpose(0,1,3,2,4,5).reshape(128,16,16,4).copy()
         return atlas, properties, state
 
     @staticmethod

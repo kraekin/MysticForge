@@ -213,7 +213,7 @@ class Canvas(QGraphicsView):
             x,y=self.arrival
             painter.setPen(QPen(QColor("#65f5b3"),2));painter.drawEllipse(x*16,y*16,16,16)
         for points,enabled,selected in self.world_paths:
-            pen=QPen(QColor("#5deaff" if selected else "#69ef9c" if enabled else "#8a8f98"),3 if selected else 1);pen.setCosmetic(True);painter.setPen(pen)
+            pen=QPen(QColor("#5deaff" if selected else "#69ef9c" if enabled else "#25282D"),3 if selected else 2);pen.setCosmetic(True);painter.setPen(pen)
             for (ax,ay),(bx,by) in zip(points,points[1:]):
                 if abs(ax-bx)<=1 and abs(ay-by)<=1:painter.drawLine(ax*16+8,ay*16+8,bx*16+8,by*16+8)
         painter.setPen(QColor("#ffde86"))
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
         database_menu=self.menuBar().addMenu("&Database")
         from .database_editor import open_database
         self.action(database_menu,"Open game database…",lambda:open_database(self),"Ctrl+D")
-        edit = self.menuBar().addMenu("&Edit")
+        edit = self.menuBar().addMenu("&Edit");self.edit_menu=edit
         from .metatile_editor import open_metatiles
         self.action(edit,"Metatile editor…",lambda:open_metatiles(self))
         from .rom_fixes import show_fixes
@@ -308,6 +308,11 @@ class MainWindow(QMainWindow):
         events_menu=self.menuBar().addMenu("E&vents")
         from .event_browser import show_browser
         self.action(events_menu,"Browse events & references…",lambda:show_browser(self),"Ctrl+Shift+E")
+        from .story_scene_editor import open_scene
+        self.action(events_menu,"Kaeli’s axe scene…",lambda:open_scene(self))
+        from .scene_editor import open_workspace
+        self.action(events_menu,"Scene editor…",lambda:open_workspace(self))
+        self.action(events_menu,"Hill of Destiny opening scene…",lambda:open_workspace(self,0x03f862,12))
         help_menu = self.menuBar().addMenu("&Help")
         from .diagnostics import show as show_diagnostics
         self.action(help_menu,"Diagnostics…",lambda:show_diagnostics(self))
@@ -437,6 +442,7 @@ class MainWindow(QMainWindow):
             item.setHidden(not match)
 
     def select_area(self,area_id):
+        self.sync_project_catalog()
         self.search.clear();self.end_stroke();self.selection.reset()
         layout=self.rom.areas[area_id].layout_id;self.last_area[layout]=area_id
         self.areas.blockSignals(True);self.areas.setCurrentItem(self.area_items[area_id]);self.areas.blockSignals(False)
@@ -465,7 +471,7 @@ class MainWindow(QMainWindow):
         edit_metatile=QPushButton("Edit selected metatile…");edit_metatile.clicked.connect(lambda:open_metatiles(self));box.addWidget(edit_metatile)
         self.tiles.currentRowChanged.connect(lambda row:setattr(self,"brush",max(0,row)))
         box.addWidget(self.layer_bit);self.layer_bit.show()
-        self.paint_triggers=QCheckBox("Paint entrance triggers");self.paint_triggers.setToolTip("Allow terrain painting and stamps to create working entrance tiles. Coordinate lookup records and destinations are not created automatically.");box.addWidget(self.paint_triggers)
+        self.paint_triggers=QCheckBox("Paint entrance triggers");self.paint_triggers.setToolTip("With Pencil, click a normal door tile onto the map to choose its destination before placing it. Other trigger types and stamps retain their existing lookup behavior.");box.addWidget(self.paint_triggers)
         palette_toggle=QCheckBox("Edit palette colors");box.addWidget(palette_toggle)
         self.palette_table=QTableWidget(8,8);self.palette_table.setFixedHeight(183)
         self.palette_table.horizontalHeader().hide();self.palette_table.verticalHeader().hide()
@@ -596,7 +602,8 @@ class MainWindow(QMainWindow):
             self.split.setSizes([width,width])
         for canvas in (self.canvas,self.before):canvas.fitInView(canvas.sceneRect(),Qt.AspectRatioMode.KeepAspectRatio)
 
-    def refresh(self):
+    def sync_project_catalog(self):
+        """Update map navigation before selecting an area from a loaded project."""
         if self.rom is not self.project.rom:
             self.rom=self.project.rom;self.renderer=Renderer(self.rom);self.connections=Connections(self.rom)
             self.areas.blockSignals(True);self.areas.clear();self.area_items={};self.map_items={};self.last_area={}
@@ -608,6 +615,8 @@ class MainWindow(QMainWindow):
                 self.area_items[a.id]=self.map_items[a.layout_id]
             if self.area_id>=len(self.rom.areas):self.area_id=0;self.project.area_id=0
             self.areas.setCurrentItem(self.area_items[self.area_id]);self.areas.blockSignals(False)
+    def refresh(self):
+        self.sync_project_catalog()
         if hasattr(self,"database_window"):self.database_window.project_changed()
         if hasattr(self,"metatile_window"):self.metatile_window.refresh()
         if hasattr(self,"pixel_window"):self.pixel_window.refresh()
@@ -660,17 +669,29 @@ class MainWindow(QMainWindow):
                 if index>=0:self.target.setCurrentIndex(index)
             self.terrain_buttons.update_targets();self.terrain_choices.setVisible(self.target.count()>1)
             self.full_aquaria.setVisible(self.area_id in (24,25))
-            rgba,atlas,props,state=self.renderer.area(self.project,self.area_id)
+            atlas,props,state=self.renderer.metatiles(self.project,self.area_id)
             self._state=state
             brush=self.brush
-            self.tiles.blockSignals(True)
-            self.tiles.clear()
-            for index in range(128):
-                item=QListWidgetItem(QIcon(QPixmap.fromImage(qimage(atlas[index]))),f"{index:02X}")
-                item.setToolTip(f"Metatile ${index:02X} · properties {props[index,0]:02X} {props[index,1]:02X}")
-                self.tiles.addItem(item)
-            self.tiles.setCurrentRow(brush)
-            self.tiles.blockSignals(False)
+            # Use rendered inputs rather than edit counts: undo, palette changes,
+            # private sets and project switches must all invalidate correctly.
+            thumbnail_key=(self.rom,area.header,atlas.tobytes(),props.tobytes(),state.flags,
+                           self.project.palette(state.palette)[0])
+            if getattr(self,'_thumbnail_key',None)!=thumbnail_key:
+                self.tiles.blockSignals(True)
+                self.tiles.clear()
+                from .tile_previews import thumbnails,tile_icon,description
+                previews,bg_description=thumbnails(self.renderer,self.project,self.area_id,atlas,state)
+                for index in range(128):
+                    transparent=bool((atlas[index,:,:,3]==0).any())
+                    entrance=int(props[index,1])&0xe0==0x80
+                    item=QListWidgetItem(tile_icon(previews[index],transparent,entrance),f"{index:02X}")
+                    item.setToolTip(description(index,props[index],transparent,bg_description))
+                    self.tiles.addItem(item)
+                self.tiles.setCurrentRow(brush)
+                self.tiles.blockSignals(False)
+                self._thumbnail_key=thumbnail_key
+            else:
+                self.tiles.blockSignals(True);self.tiles.setCurrentRow(brush);self.tiles.blockSignals(False)
             self.brush=brush
             self.tile_label.setText(f"Metatiles · set ${self.project.tileset(self.area_id):02X} · palette ${state.palette:02X}")
             for index,value in enumerate(self.project.palette(state.palette)):
@@ -823,8 +844,22 @@ class MainWindow(QMainWindow):
         self.end_stroke()
         self._stroke_sources=self._terrain_sources.copy()
         self._last_cell=(x,y)
+        self._placing_entrance=False
         attrs=self.rom.attributes[self.rom.areas[self.area_id].attributes_id]
         if not (0<=x<attrs.width and 0<=y<attrs.height):return
+        if not pick and self.tool.currentText()=="Pencil" and self.paint_triggers.isChecked() and self.rom.areas[self.area_id].layout_id!=0:
+            props=bytearray(self.project.fixed("properties",self.project.tileset(self.area_id)))
+            for a,b in self._state.remaps:props[a*2:a*2+2]=props[b*2:b*2+2]
+            if props[self.brush*2+1]==0x80:
+                self._placing_entrance=True
+                key=self.edit_key(x,y)
+                if key is None or key[0]!="layout":self.error("Choose Base terrain to place a new entrance.");return
+                sx,sy=self.terrain_source(x,y)%attrs.width,self.terrain_source(x,y)//attrs.width
+                for row,e in enumerate(self.connection_panel.entries):
+                    if (e.x,e.y)==(x,y) and self.connection_panel.destination_key(e) is not None:
+                        self.connection_panel.table.selectRow(row);self.connection_panel.choose_destination();return
+                from .expanded_content_editor import new_entrance
+                new_entrance(self,(sx,sy));return
         if self.tool.currentText()=="Artwork":
             if self.rom.areas[self.area_id].layout_id==0:self.landmark_editor.press_map(x,y,pick)
             return
@@ -889,6 +924,7 @@ class MainWindow(QMainWindow):
         elif self.tool.currentText()=="Pencil":self.paint_cell(x,y)
 
     def drag_stroke(self,x,y):
+        if getattr(self,"_placing_entrance",False):return
         if self.tool.currentText()=="Tile behavior":
             if self.property_editor.mode.currentIndex() in (2,4):
                 x0,y0=getattr(self,'_last_cell',(x,y));steps=max(abs(x-x0),abs(y-y0),1)

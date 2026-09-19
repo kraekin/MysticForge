@@ -1,6 +1,6 @@
 """Route and condition editing without reallocating route streams."""
 from .event_flags import flag_label
-from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QSpinBox,QComboBox,QCheckBox,QPushButton,QTableWidget,QScrollArea
+from PySide6.QtWidgets import QWidget,QVBoxLayout,QHBoxLayout,QLabel,QSpinBox,QComboBox,QCheckBox,QPushButton,QTableWidget,QScrollArea,QInputDialog
 from .world import DIRECTIONS,points,position,gate,available,validate
 from .resources import changes
 from .world_expansion import routes,route_data,nodes,node_label
@@ -12,6 +12,7 @@ class WorldEditor(QWidget):
         self.node=QSpinBox();self.node.setRange(1,56);self.node.setPrefix("Node $");self.node.setDisplayIntegerBase(16);self.node.setValue(0x16)
         self.direction=QComboBox();self.direction.addItems(DIRECTIONS)
         box.addWidget(self.node);box.addWidget(self.direction)
+        self.name_button=QPushButton('Edit in-game name…');box.addWidget(self.name_button);self.name_button.clicked.connect(self.rename_location)
         self.info=QLabel();self.info.setWordWrap(True);box.addWidget(self.info)
         line=QHBoxLayout();line.addWidget(QLabel("Destination node"));self.destination=QSpinBox();self.destination.setRange(0,63);self.destination.setDisplayIntegerBase(16);line.addWidget(self.destination);box.addLayout(line)
         line=QHBoxLayout();line.addWidget(QLabel("Required flag $"));self.flag=QSpinBox();self.flag.setRange(0,255);self.flag.setDisplayIntegerBase(16);line.addWidget(self.flag);box.addLayout(line)
@@ -59,6 +60,8 @@ class WorldEditor(QWidget):
             if self.node.value() not in nodes(p):self.node.setValue(0x16)
             self.node.blockSignals(False)
             self.add_step.setEnabled(p.expanded);self.remove_step.setEnabled(p.expanded)
+            from .world_expansion import spot_name
+            self.name_button.setText('Name: '+spot_name(p,self.node.value())+' · Edit…')
             r=self.route();raw=route_data(p,r)
             self.destination.setValue(raw[0]);self.flag.setValue(gate(p,r));self.flag_changed()
             end=points(p,r)[-1];refs=[f"{x.node:02X}/{DIRECTIONS[x.direction]}" for x in routes(p) if x.offset==r.offset]
@@ -99,3 +102,10 @@ class WorldEditor(QWidget):
         from .world_creation import open_new_location
         open_new_location(self.window,self.node.value(),self.direction.currentIndex())
 
+
+    def rename_location(self):
+        from .world_expansion import spot_name,rename_spot
+        from .expanded_content_editor import commit
+        p=self.window.project;n=self.node.value()
+        text,ok=QInputDialog.getText(self,'Overworld spot name','In-game name (up to 16 characters). Only this spot changes:',text=spot_name(p,n))
+        if ok:commit(self.window,lambda:rename_spot(p,n,text),'Rename overworld spot')

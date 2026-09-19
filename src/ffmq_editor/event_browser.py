@@ -33,6 +33,7 @@ class EventBrowser(QDialog):
         self.summary_button=QPushButton('Summary…');self.summary_button.clicked.connect(self.open_summary);actions.addWidget(self.summary_button)
         self.open_button=QPushButton('Event flow…');self.open_button.clicked.connect(self.open_event);actions.addWidget(self.open_button)
         self.edit_button=QPushButton('Edit shared dialogue / parameters…');self.edit_button.clicked.connect(self.edit_event);actions.addWidget(self.edit_button)
+        self.scene_button=QPushButton('Open in scene editor…');layout.addWidget(self.scene_button);self.scene_button.clicked.connect(self.open_scene)
         self.reference_note=QLabel('Select an Object reference to visit its NPC or customize its dialogue.');self.reference_note.setWordWrap(True);layout.addWidget(self.reference_note)
         self.references=QTreeWidget();self.references.setHeaderLabels(['Type','Source']);self.references.setColumnWidth(0,85);self.details.addTab(self.references,'Used by')
         self.visit_button=QPushButton('Go to selected reference');self.visit_button.clicked.connect(self.visit);navigation=QHBoxLayout();layout.addLayout(navigation);navigation.addWidget(self.visit_button)
@@ -73,7 +74,7 @@ class EventBrowser(QDialog):
         query=self.search.text().strip().lower().replace('$','');category=self.category.currentIndex();visible=[]
         for key,item in self.items.items():
             record=self.catalog.records[key];aliases=' '.join(record.aliases)
-            category_ok=(category==0 or category==1 and 'NPC ' in aliases or category==2 and 'World /' in aliases or category==3 and 'Text fragment' in aliases or category==4 and not record.aliases or category==5 and any(r.kind in ('Object','Entrance') for r in record.references) or category==6 and any(r.kind in ('Object','Entrance') and r.target[0]==self.window.area_id for r in record.references))
+            category_ok=(category==0 or category==1 and 'NPC ' in aliases or category==2 and ('World /' in aliases or 'opening cutscene' in aliases) or category==3 and 'Text fragment' in aliases or category==4 and not record.aliases or category==5 and any(r.kind in ('Object','Entrance') for r in record.references) or category==6 and any(r.kind in ('Object','Entrance') and r.target[0]==self.window.area_id for r in record.references))
             match=category_ok and all(word in record.search_text.replace('$','') for word in query.split())
             item.setHidden(not match)
             if match:visible.append(item)
@@ -87,7 +88,7 @@ class EventBrowser(QDialog):
         self.private_button.setEnabled(False)
         self.event_button.setEnabled(False)
         self.scope.clear()
-        self.open_button.setEnabled(item is not None)
+        self.open_button.setEnabled(item is not None);self.scene_button.setEnabled(item is not None)
         self.edit_button.setEnabled(item is not None)
         self.summary_button.setEnabled(item is not None)
         if item is None:self.heading.setText('No matching events');self.preview.clear();self.dialogue_button.setEnabled(False);return
@@ -140,6 +141,14 @@ class EventBrowser(QDialog):
         overview='\n'.join([*sorted(record.aliases),f'Event ${record.address:06X}',f'{len(record.references)} static incoming references. Browse references in the event browser.'])
         self.inspector=EventInspector(self.window,f'Event ${record.address:06X}',overview,record.address,extent=record.extent)
         self.inspector.show()
+
+    def open_scene(self):
+        item=self.list.currentItem()
+        if item is None:return
+        record=self.catalog.records[tuple(item.data(0,ROLE))]
+        from .scene_editor import open_workspace
+        areas={r.target[0] for r in record.references if r.kind in ('Object','Entrance')}
+        open_workspace(self.window,record.address,next(iter(areas)) if len(areas)==1 else None,record.extent)
 
     def edit_event(self):
         if not self.fresh():return

@@ -10,7 +10,7 @@ STREAMS=START+0x600
 PATCHES=((0x01f147,0x07f011,POINTERS),(0x01f14f,0x070000,0x1a0000),(0x01f531,0x070000,0x1a0000),
  (0x0b8177,0x07f7c3,POSITIONS),(0x01f1b6,0x07efa1,ACTIONS),(0x0289fe,0x07efa1,ACTIONS),
  *((a,0x07ee84+i,GATES+i) for i,a in enumerate((0x0c802d,0x0c8034,0x0c803e,0x0c8048,0x0c8052))))
-def active(p):return bool(p.world['routes'] or p.world['nodes'])
+def active(p):return bool(p.world['routes'] or p.world['nodes'] or p.world.get('names'))
 def nodes(p):return (*range(1,57),*sorted(p.world['nodes']))
 def route_data(p,r):return p.world['routes'].get(r.node*4+r.direction,b'\0' if r.node>56 else p.fixed('world_route',r.offset))
 def routes(p):
@@ -18,8 +18,11 @@ def routes(p):
  return (*p.rom.routes,*(Route(n,d,0x300000+n*4+d,1) for n in sorted(p.world['nodes']) for d in range(4)))
 def validate_structure(p):
  w=p.world
- if not isinstance(w,dict) or set(w)!={'routes','nodes'} or any(not isinstance(v,dict) for v in w.values()):raise FormatError('Invalid overworld data')
+ if not isinstance(w,dict) or set(w) not in ({'routes','nodes'},{'routes','nodes','names'}) or any(not isinstance(v,dict) for v in w.values()):raise FormatError('Invalid overworld data')
  if active(p) and not p.expanded:raise FormatError('Overworld expansion requires 1 MiB export')
+ for n,text in w.get('names',{}).items():
+  if type(n) is not int or n not in nodes(p):raise FormatError('Invalid named world spot')
+  encode_label(text)
  for n,c in w['nodes'].items():
   if type(n) is not int or not 57<=n<=63 or not isinstance(c,dict) or set(c)!={'position','gates','action','name'}:raise FormatError('Invalid expanded world node')
   for key,size in (('position',2),('gates',4),('action',2)):
@@ -33,7 +36,7 @@ def validate_structure(p):
   if action not in (0,1,2,4,5) or links.destination(action,value) is None:raise FormatError('New location needs a valid direct destination')
  for key,raw in w['routes'].items():
   if type(key) is not int or key//4 not in nodes(p) or not isinstance(raw,bytes) or not 1<=len(raw)<=129:raise FormatError('Invalid expanded route')
-def encode(p):return {'routes':[[k,v.hex()] for k,v in sorted(p.world['routes'].items())],'nodes':[[k,{f:(v.hex() if isinstance(v,bytes) else v) for f,v in c.items()}] for k,c in sorted(p.world['nodes'].items())]}
+def encode(p):return {'names':[[n,t] for n,t in sorted(p.world.get('names',{}).items())],'routes':[[k,v.hex()] for k,v in sorted(p.world['routes'].items())],'nodes':[[k,{f:(v.hex() if isinstance(v,bytes) else v) for f,v in c.items()}] for k,c in sorted(p.world['nodes'].items())]}
 def decode(raw):
  try:
   w={'routes':{},'nodes':{}}
@@ -43,6 +46,9 @@ def decode(raw):
   for k,v in raw['nodes']:
    if k in w['nodes']:raise ValueError('Duplicate node')
    w['nodes'][k]={f:bytes.fromhex(x) if f!='name' else x for f,x in v.items()}
+  for n,t in raw.get('names',[]):
+   if n in w.setdefault('names',{}):raise ValueError('Duplicate world spot name')
+   w['names'][n]=t
   return w
  except (KeyError,TypeError,ValueError) as e:raise FormatError('Invalid saved overworld data') from e
 
@@ -69,6 +75,7 @@ def writes(p):
   at=POSITIONS-START+n*2;bank[at:at+2]=p.fixed('world_node',n)
   at=GATES-START+n*5
   if n>56:bank[at]=p.rom.data[pc(0x07ee84)+p.world['nodes'][n]['name']*5]
+  if n in p.world.get('names',{}):bank[at]=37+n
   bank[at+1:at+5]=p.fixed('world_gate',n)
   if 22<=n<=55 or n>56:
    at=ACTIONS-START+(n-1)*2;bank[at:at+2]=p.fixed('world_action',n)
@@ -78,6 +85,14 @@ def writes(p):
         (0x300,0x440,'gates'),(0x500,0x580,'actions'),
         (0x600,cursor-START+1,'route streams'),(0x7234,0x8000,'preserved ship data'))
  result=[(START+a,bytes(bank[a:b]),'expanded overworld '+label) for a,b,label in spans]
+ if p.world.get('names'):
+  at=cursor+1;table=bytearray(b'\x03'*((38+max(p.world['names']))*16))
+  table[:37*16]=p.rom.data[pc(0x0cbed0):pc(0x0cbed0)+37*16]
+  for n,text in p.world['names'].items():table[(37+n)*16:(38+n)*16]=encode_label(text)
+  if at+len(table)>START+0x7234:raise FormatError('Overworld names and routes exceed their verified bank')
+  operand=pc(0x03a46d)
+  if p.rom.data[operand-5:operand+3]!=bytes.fromhex('054d100543d0be0c'):raise FormatError('Overworld name lookup guard failed')
+  result.extend([(at,bytes(table),'overworld spot names'),(operand,cpu_address(at).to_bytes(3,'little'),'overworld name table operand')])
  for address,original,target in PATCHES:
   old=b'\xbf'+original.to_bytes(3,'little');at=pc(address)
   hits=[i for i in range(len(p.rom.data)) if p.rom.data.startswith(old,i)]
@@ -90,6 +105,11 @@ def writes(p):
 
 def verify_output(p,out):
  from .world import validate
+ if p.world.get('names'):
+  table=pc(int.from_bytes(out[pc(0x03a46d):pc(0x03a46d)+3],'little'),expanded=True)
+  for n,text in p.world['names'].items():
+   index=out[GATES+n*5]
+   if index!=37+n or out[table+index*16:table+(index+1)*16]!=encode_label(text):raise FormatError('Overworld name export verification failed')
  for r in routes(p):
   pointer=int.from_bytes(out[POINTERS+(r.node-1)*2:POINTERS+r.node*2],'little');cursor=START+(pointer&32767)
   for d in range(4):
@@ -126,9 +146,29 @@ def add_node(p,source,direction,distance,label_source,entry_source,flag):
 
 def node_label(p,n):
  from .connections import Connections
+ if n in p.world.get('names',{}):return f"{p.world['names'][n]} · node ${n:02X}"
  original=p.world['nodes'].get(n,{}).get('name',n)
  if 22<=original<=55:
   links=Connections(p.rom);links.project=p;value,action=p.fixed('world_action',original)
   target=links.destination(action,value,p.flags)
   if target:return f'{p.rom.areas[target[0]].name} · node ${n:02X}'
  return f'Node ${n:02X}'
+
+
+def encode_label(text):
+ from .database import encode_name
+ if not isinstance(text,str) or not text.strip():raise FormatError('Enter a location name')
+ return encode_name(text,16)
+
+def spot_name(p,n):
+ if n in p.world.get('names',{}):return p.world['names'][n]
+ from .events import inline_name
+ source=p.world['nodes'].get(n,{}).get('name',n)
+ index=p.rom.data[pc(0x07ee84)+source*5]
+ return inline_name(p.rom,0x1f,index) or ('Battlefield' if 128<=index<240 else 'Special location')
+
+def rename_spot(p,n,text):
+ if not p.expanded:raise FormatError('Enable expanded ROM export to give a spot its own name')
+ if n not in nodes(p):raise FormatError('Select an existing overworld spot')
+ encode_label(text)
+ p.world.setdefault('names',{})[n]=text

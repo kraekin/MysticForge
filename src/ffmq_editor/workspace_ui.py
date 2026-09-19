@@ -57,6 +57,8 @@ def view_controls(w,layers):
     reset=QPushButton('Reset to initial frame');reset.clicked.connect(lambda:w.frame.setValue(0));box.addWidget(reset)
     w.action(w.view_menu,'Animation frame…',w.view_options.show)
     w.action(w.view_menu,'Map details…',lambda:w.show_map_details())
+    from .map_geometry_editor import open_resize
+    w.action(w.edit_menu,'Resize map…',lambda:open_resize(w))
 
 def version_name(w,area_id):
     from .map_setups import info

@@ -21,7 +21,8 @@ class ConnectionPanel(QWidget):
         self.table.itemSelectionChanged.connect(self.locate)
         from .expanded_content_editor import new_entrance
         self.new_button=QPushButton('Add entrance…');self.new_button.clicked.connect(lambda:new_entrance(self.window));box.addWidget(self.new_button)
-        self.table.cellDoubleClicked.connect(lambda *_:self.follow())
+        self.destination_button=QPushButton("Change destination…");self.destination_button.clicked.connect(self.choose_destination);box.addWidget(self.destination_button)
+        self.table.cellDoubleClicked.connect(lambda *_:self.choose_destination())
         button=QPushButton("Go to selected destination");button.clicked.connect(self.follow);box.addWidget(button)
         inspect=QPushButton("Open full inspector…");inspect.clicked.connect(self.inspect);box.addWidget(inspect)
         content=QWidget();scroll=QScrollArea();scroll.setWidgetResizable(True);scroll.setWidget(content)
@@ -89,7 +90,8 @@ class ConnectionPanel(QWidget):
         entry=self.entry();self.selected_key=self.destination_key(entry)
         self.move_button.setEnabled(bool(entry and not entry.label.startswith("World node") and (entry.action==3 or entry.source in self.window.project.coordinate_offsets)))
         valid=self.selected_key is not None
-        self.apply.setEnabled(valid);self.incoming.setEnabled(valid)
+        self.apply.setEnabled(valid);self.incoming.setEnabled(valid);self.destination_button.setEnabled(valid)
+        self.destination_button.setToolTip("Choose a map and click the arrival square." if valid else "This entrance is controlled by a script or runtime return, not a direct destination.")
         for spin in self.fields.values():spin.setEnabled(valid)
         if valid:
             raw=self.window.project.fixed("destination",self.selected_key);area,y,x=raw[-3:]
@@ -104,6 +106,19 @@ class ConnectionPanel(QWidget):
         for name,spin in self.source_fields.items():spin.setEnabled(field_source or (world_source and name=="Destination ID"))
         if entry:
             for name,value in (("Source X",entry.x),("Source Y",entry.y),("Destination ID",entry.value)):self.source_fields[name].setValue(value)
+
+    def choose_destination(self):
+        from .entrance_destination import DestinationDialog
+        key=self.selected_key
+        if key is None:return
+        w=self.window;project=w.project;original=bytes(project.fixed('destination',key))
+        def apply(raw):
+            if w.project is not project:w.error('The project changed. Reopen the destination picker.');return False
+            updated=original[:-3]+raw
+            w.commit_changes(changes(project,'destination',key,updated),'Change entrance destination')
+            return True
+        dialog=DestinationDialog(w,original,apply,note='Choose a map setup and click the arrival square. This edits the destination record shared by every entrance that uses it. Use Find references in Edit selected connection to inspect those links. The return entrance is separate.')
+        self.destination_dialog=dialog;dialog.setModal(True);dialog.show()
 
     def arm_move(self,enabled):
         if enabled:

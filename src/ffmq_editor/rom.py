@@ -169,6 +169,7 @@ class Area:
     header: bytes
     objects: tuple[bytes, ...]
     title: str | None = None
+    attribute_override: int | None = None
 
     @property
     def layout_id(self):
@@ -176,7 +177,7 @@ class Area:
 
     @property
     def attributes_id(self):
-        return self.header[1]
+        return self.header[1] if self.attribute_override is None else self.attribute_override
 
     @property
     def name(self):

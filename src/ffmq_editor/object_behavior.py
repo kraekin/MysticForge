@@ -39,3 +39,12 @@ def object_behavior(rom,obj):
     # Exact v1.0 loader operands and bit extraction. Reject unrelated ROM code.
     if read(rom.data,pc(0x01A77D),4)!=bytes.fromhex('bfe4870b'):return None
     return ObjectBehavior(index,read(rom.data,pc(PROFILE_BASE)+index*2,2),(obj[3]>>6)&3)
+
+
+def compatible_profiles(rom,index):
+    """Preserve animation layout, masks and offsets; vary only state/speed."""
+    if not 0<=index<PROFILE_COUNT:return ()
+    if read(rom.data,pc(0x01A77D),4)!=bytes.fromhex('bfe4870b'):return ()
+    base=pc(PROFILE_BASE);original=rom.data[base+2*index:base+2*index+2]
+    return tuple(ObjectBehavior(i,rom.data[base+2*i:base+2*i+2],0) for i in range(PROFILE_COUNT)
+                 if rom.data[base+2*i]&63==original[0]&63 and rom.data[base+2*i+1]&63==original[1]&63)

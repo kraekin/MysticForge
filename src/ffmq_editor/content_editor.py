@@ -72,11 +72,20 @@ class ContentEditor(QWidget):
         self.window.commit_changes(edits,"Use one formation for all encounter variants")
 
     def refresh(self):
+        p=self.window.project
+        # Terrain painting, preview flags and selection do not change these
+        # tables or references. Include sparse values so undo/redo invalidates too.
+        kinds={'monster_name','treasure','encounter','formation','object','extra_object','object_count'}
+        signature=(id(p),id(p.rom),tuple(sorted((k,v) for k,v in p.edits.items() if k[0] in kinds)),
+                   self.treasure.value(),self.encounter.value(),self.formation.value(),self.tabs.currentIndex())
+        if getattr(self,'_refresh_signature',None)==signature:return
+        names=tuple(enemy_name(p,i) for i in range(81))
         for combo in self.enemies:
-            for i in range(81):combo.setItemText(i+1,f'${i:02X} · {enemy_name(self.window.project,i)}')
+            for i in range(81):combo.setItemText(i+1,f'${i:02X} · {names[i]}')
         p=self.window.project
         self.item.setCurrentIndex(self.item.findData(p.fixed("treasure",self.treasure.value())[0]))
-        for spin,value in zip(self.variants,p.fixed("encounter",self.encounter.value())):spin.setValue(value)
+        for spin,value in zip(self.variants,p.fixed("encounter",self.encounter.value())):
+            spin.blockSignals(True);spin.setValue(value);spin.blockSignals(False)
         raw=p.fixed("formation",self.formation.value())
         for combo,check,value in zip(self.enemies,self.high,raw):combo.setCurrentIndex(combo.findData(255 if value==255 else value&127));check.setChecked(value!=255 and bool(value&128))
         self.settings.setValue(raw[3])
@@ -86,6 +95,8 @@ class ContentEditor(QWidget):
         kind=2 if self.tabs.currentIndex()==0 else 1;resource=self.treasure.value() if kind==2 else self.encounter.value()
         refs=[f"{a.id:02X}/{i:02X}" for a in p.rom.areas for i,obj in enumerate(p.objects(a.id)) if ((obj[5]>>3)&3)==kind and obj[1]==resource]
         self.info.setText("Object uses (area/object): "+(", ".join(refs) or "none")+". Scripts and battlefields may also use this resource.")
+
+        self._refresh_signature=signature
 
     def open_object(self,index):
         objects=self.window.project.objects(self.window.area_id)

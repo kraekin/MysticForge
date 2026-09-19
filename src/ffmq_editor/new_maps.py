@@ -10,9 +10,9 @@ def destination(p,resource):
  return None
 
 def sync_catalog(p):
- signature=(tuple((i,repr(c)) for i,c in sorted(p.newmaps.items())),tuple((i,repr(c)) for i,c in sorted(p.sprite_sets.items())))
+ signature=(tuple((i,repr(size)) for i,size in sorted(p.map_sizes.items())),tuple(sorted(p.layout_bindings.items())),tuple((i,repr(c)) for i,c in sorted(p.newmaps.items())),tuple((i,repr(c)) for i,c in sorted(p.sprite_sets.items())))
  if getattr(p.rom,'map_signature',None)==signature:return
- if not p.newmaps and not p.sprite_sets:
+ if not p.newmaps and not p.sprite_sets and not p.map_sizes:
   if hasattr(p.rom,'map_signature'):p.rom=p.base_rom
   return
  r=copy(p.base_rom);r.base_rom=p.base_rom;r.map_signature=signature
@@ -30,6 +30,17 @@ def sync_catalog(p):
  for i,c in p.sprite_sets.items():
   if type(i) is not int or not 0<=i<len(areas):raise FormatError('Invalid sprite-set area')
   h=bytearray(areas[i].header);h[2]=COUNT+i;areas[i]=replace(areas[i],header=bytes(h));r.sprite_descriptors[COUNT+i]=c['data']
+ attrs=list(r.attributes)
+ for i,a in enumerate(areas):
+  size=p.map_sizes.get(p.layout_bindings.get(i,a.layout_id))
+  if size is not None:
+   from .map_geometry import check_size
+   if not isinstance(size,(tuple,list)) or len(size)!=2:raise FormatError('Invalid map dimensions')
+   check_size(*size)
+   attr=r.attributes[a.attributes_id];raw=bytes((((size[1]//16-1)*4+size[0]//16-1)<<4|attr.tileset,))+attr.raw[1:]
+   from .rom import Attributes
+   areas[i]=replace(a,attribute_override=len(attrs));attrs.append(Attributes(raw,*size))
+ r.attributes=tuple(attrs)
  r.areas=tuple(areas);r.area_actions=(*r.area_actions,*( () for _ in p.newmaps))
  r.object_capacities=dict(r.object_capacities);r.structural_object_sets=set(r.structural_object_sets)
  for a in areas[108:]:r.object_capacities[a.offset]=0;r.structural_object_sets.add(a.offset)
@@ -49,7 +60,7 @@ def validate(p):
   if raw[1]>=a.height or (raw[2]&63)>=a.width:raise FormatError('New map arrival is outside its bounds')
   if any(type(c[k]) is not int for k in ('x','y','facing')) or not 0<=c['x']<a.width or not 0<=c['y']<a.height or not 0<=c['facing']<4:raise FormatError('Map entry coordinates invalid')
 
-def create(p,source,name,fill):
+def create(p,source,name,fill,width=None,height=None):
  if not p.expanded:raise FormatError('Enable expanded ROM export first')
  if type(source) is not int or not 0<=source<108 or p.rom.areas[source].layout_id==0:raise FormatError('Choose a field-map template')
  if len(p.newmaps)>=8:raise FormatError('All eight new map slots are used')
@@ -65,7 +76,16 @@ def create(p,source,name,fill):
  if source in p.sprite_sets:
   from copy import deepcopy
   p.sprite_sets[i]=deepcopy(p.sprite_sets[source])
+ if width is None and height is None:width,height=attrs.width,attrs.height
  sync_catalog(p)
+ if width is not None or height is not None:
+  from .map_geometry import check_size,supported
+  check_size(width,height)
+  if (width,height)!=(p.base_rom.attributes[a.header[1]].width,p.base_rom.attributes[a.header[1]].height):
+   reason=supported(p,i)
+   if reason:raise FormatError(reason)
+   p.layout_copies[layout]['cells']=bytes((fill,))*(width*height);p.map_sizes[layout]=(width,height)
+   p.newmaps[i].update(x=width//2,y=height//2);sync_catalog(p)
  if p.tileset(source)>=16:
   from .expanded_content import copy_metatiles,KINDS
   private=copy_metatiles(p,i)

@@ -112,6 +112,8 @@ class EditIndex:
     def __init__(self,rom):
         self.rom=rom;dictionary=dict(fragments(rom));queue=deque()
         roots={npc_entry(rom,i) for i in range(124)}|{world_entry(rom,i) for i in range(80)}|{0x038686}|set(dictionary)
+        from .events import opening_entry
+        roots.add(opening_entry(rom))
         roots.discard(None);queue.extend((a,dictionary.get(a)) for a in roots)
         seen=set();variants={};incoming=set(roots);total=0
         while queue:
@@ -155,6 +157,8 @@ class EditIndex:
                 group.append(row)
             else:
                 flush();field=parameter(row)
+                from .scene_commands import editable
+                if editable(row.raw):self.segments[a]=Segment(a,row.raw,'field',row.description)
                 if field:self.segments[a]=Segment(a,row.raw,'parameter',row.description,field[1],field[2],field[3])
         flush()
 
@@ -166,8 +170,8 @@ def index(project):
     return cached[1]
 
 def event_rom(project):
-    if not project.event_edits and not project.private_dialogues:return project.rom
-    signature=(id(project.rom),tuple((a,r['bytes']) for a,r in sorted(project.event_edits.items())),json.dumps(project.private_dialogues,sort_keys=True))
+    if not project.event_edits and not project.private_dialogues and not project.story_scene:return project.rom
+    signature=(id(project.rom),tuple((a,r['bytes']) for a,r in sorted(project.event_edits.items())),json.dumps(project.private_dialogues,sort_keys=True),json.dumps(project.story_scene,sort_keys=True))
     cached=getattr(project,'_event_overlay',None)
     if cached is not None and cached[0]==signature:return cached[1]
     result=copy(project.rom);data=bytearray(result.data)
@@ -178,6 +182,10 @@ def event_rom(project):
         entries,writes=plan(project);result.private_npc_entries=entries
         data.extend(b'\xff'*(0x100000-len(data)))
         for at,raw,_ in writes:data[at:at+len(raw)]=raw
+    if project.story_scene:
+        from .story_scenes import writes
+        data.extend(b'\xff'*(0x100000-len(data)))
+        for at,raw,_ in writes(project):data[at:at+len(raw)]=raw
     result.data=bytes(data);project._event_overlay=(signature,result);return result
 
 def view_rom(window):
@@ -185,6 +193,12 @@ def view_rom(window):
     return event_rom(window.project) if hasattr(window,'project') else window.rom
 
 def replacement(project,segment,value):
+    if segment.kind=='field':
+        from .scene_commands import replace
+        if project.story_scene:
+            from .story_scenes import ENTRY,RETURN,ORIGINAL
+            if segment.address<ENTRY+len(ORIGINAL) and segment.address+len(segment.raw)>ENTRY or segment.address<RETURN+3 and segment.address+len(segment.raw)>RETURN:raise FormatError('Use Kaeli’s axe scene editor for this overridden movement.')
+        return replace(project,segment.raw,value)
     if segment.kind=='text':
         if not isinstance(value,str):raise FormatError('Dialogue must be text')
         if value==tokens(project.base_rom,segment.raw):return segment.raw

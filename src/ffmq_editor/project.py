@@ -35,6 +35,8 @@ class Project:
         self.rom = rom
         self.base_rom=getattr(rom,"base_rom",rom)
         self.newmaps={}
+        self.map_sizes={}
+        self.story_scene=None
         self.sprite_sets={}
         self.event_edits={}
         self.private_dialogues={}
@@ -85,6 +87,10 @@ class Project:
         validate_dialogues(self)
         from .new_maps import sync_catalog,validate as validate_maps
         sync_catalog(self);validate_maps(self)
+        from .map_geometry import validate as validate_geometry
+        validate_geometry(self)
+        from .story_scenes import validate as validate_scene
+        validate_scene(self)
         from .map_setups import validate as validate_setups
         validate_setups(self)
         from .sprite_sets import validate as validate_sprites
@@ -101,7 +107,7 @@ class Project:
             if type(resource) is not int or not 44<=resource<64 or not isinstance(copy,dict) or set(copy)!= {'source','cells'}:
                 raise FormatError('Invalid independent layout')
             source=copy['source']
-            if type(source) is not int or not 0<=source<44 or not isinstance(copy['cells'],bytes) or len(copy['cells'])!=len(self.rom.layouts[source].cells):
+            if type(source) is not int or not 0<=source<44 or not isinstance(copy['cells'],bytes) or len(copy['cells'])!=(self.map_sizes[resource][0]*self.map_sizes[resource][1] if resource in self.map_sizes else len(self.rom.layouts[source].cells)):
                 raise FormatError('Invalid independent layout source or geometry')
         for area_id,resource in self.layout_bindings.items():
             if type(area_id) is not int or not 0<=area_id<len(self.rom.areas) or type(resource) is not int or resource not in self.layout_copies:
@@ -180,7 +186,7 @@ class Project:
         return data[index]
 
     def get(self, key):
-        return self.edits.get(key, self.original(key))
+        return self.edits[key] if key in self.edits else self.original(key)
 
     def set(self, key, value):
         original = self.original(key)
@@ -263,13 +269,15 @@ class Project:
         self.validate_expansion()
         from .expanded_content import encode
         from .world_expansion import encode as encode_world
-        return {"format": "ffmq-map-project", "version": 13,
+        return {"format": "ffmq-map-project", "version": 15,
                 "private_dialogues":[[a,r] for a,r in sorted(self.private_dialogues.items())],
                 "setup_labels":[[a,r] for a,r in sorted(self.setup_labels.items())],
                 "event_edits":[[a,r] for a,r in sorted(self.event_edits.items())], "base_sha256": BASE_SHA256,
                 "content":encode(self),
                 "world":encode_world(self),
                 "sprite_sets":[[i,{"labels":c["labels"],"base":c["base"],"data":c["data"].hex(),"presets":[o.hex() for o in c["presets"]]}] for i,c in sorted(self.sprite_sets.items())],
+                "story_scene":self.story_scene,
+                "map_sizes":[[i,list(size)] for i,size in sorted(self.map_sizes.items())],
                 "newmaps":[[i,c] for i,c in sorted(self.newmaps.items())],
                 "landmarks":None if self.landmarks is None else [r.hex() for r in self.landmarks],
                 "expansion": {"enabled":self.expanded,"layouts":[{'id':i,'source':c['source'],'cells':c['cells'].hex()} for i,c in sorted(self.layout_copies.items())],"bindings":[list(x) for x in sorted(self.layout_bindings.items())]},
@@ -290,9 +298,14 @@ class Project:
         if path.stat().st_size > 16*1024*1024:
             raise FormatError("Project file is too large")
         document = json.loads(path.read_text())
-        if document.get("format") != "ffmq-map-project" or document.get("version") not in (1,2,3,4,5,6,7,8,9,10,11,12,13) or document.get("base_sha256") != BASE_SHA256:
+        if document.get("format") != "ffmq-map-project" or document.get("version") not in (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15) or document.get("base_sha256") != BASE_SHA256:
             raise FormatError("Unsupported project or base ROM")
         project = cls(rom)
+        try:
+            for i,size in document.get("map_sizes",[]):
+                if type(i) is not int or i in project.map_sizes:raise ValueError("Invalid dimension entry")
+                project.map_sizes[i]=size
+        except (TypeError,ValueError) as e:raise FormatError("Invalid map dimensions") from e
         try:
             for a,r in document.get("private_dialogues",[]):
                 if type(a) is not int or a in project.private_dialogues:raise ValueError("Duplicate or invalid dialogue ID")
@@ -303,33 +316,33 @@ class Project:
                 if a in project.setup_labels:raise ValueError("Duplicate setup label")
                 project.setup_labels[a]=r
         except (TypeError,ValueError) as e:raise FormatError("Invalid map setup labels") from e
-        if document.get("version") in (9,10,11,12,13):
+        if document.get("version") in (9,10,11,12,13,14,15):
             try:
                 for a,r in document.get("event_edits",[]):
                     if a in project.event_edits:raise ValueError("Duplicate event edit")
                     project.event_edits[a]=r
             except (TypeError,ValueError) as e:raise FormatError("Invalid event edits") from e
-        if document.get("version") in (8,9,10,11,12,13):
+        if document.get("version") in (8,9,10,11,12,13,14,15):
             try:
                 for i,c in document.get("sprite_sets",[]):
                     if i in project.sprite_sets:raise ValueError('Duplicate sprite set')
                     project.sprite_sets[i]={"labels":c.get("labels",[f"Imported preset {n+1}" for n in range(len(c["presets"]))]),"base":c["base"],"data":bytes.fromhex(c["data"]),"presets":[bytes.fromhex(o) for o in c["presets"]]}
             except (KeyError,TypeError,ValueError) as e:raise FormatError('Invalid private sprite sets') from e
-        if document.get("version") in (7,8,9,10,11,12,13):
+        if document.get("version") in (7,8,9,10,11,12,13,14,15):
             for i,c in document.get("newmaps",[]):
                 if i in project.newmaps:raise FormatError("Duplicate map ID")
                 project.newmaps[i]=c
-        if document.get("version") in (6,7,8,9,10,11,12,13) and document.get("landmarks") is not None:
+        if document.get("version") in (6,7,8,9,10,11,12,13,14,15) and document.get("landmarks") is not None:
             try:project.landmarks=[bytes.fromhex(r) for r in document["landmarks"]]
             except (TypeError,ValueError) as e:raise FormatError("Invalid landmark data") from e
-        if document.get("version") in (5,6,7,8,9,10,11,12,13):
+        if document.get("version") in (5,6,7,8,9,10,11,12,13,14,15):
             from .world_expansion import decode
             project.world=decode(document["world"])
-        if document.get('version') in (4,5,6,7,8,9,10,11,12,13):
+        if document.get('version') in (4,5,6,7,8,9,10,11,12,13,14,15):
             from .expanded_content import decode
             try:project.content=decode(document['content'])
             except (KeyError,TypeError,ValueError) as error:raise FormatError('Invalid expanded content: '+str(error)) from error
-        if document.get('version') in (3,4,5,6,7,8,9,10,11,12,13):
+        if document.get('version') in (3,4,5,6,7,8,9,10,11,12,13,14,15):
             try:
                 expansion=document['expansion'];project.expanded=expansion['enabled']
                 for copy in expansion['layouts']:
@@ -350,6 +363,7 @@ class Project:
                 raise FormatError("Duplicate edit record")
             seen.add(key)
             project.set(key, item[3])
+        project.story_scene=document.get("story_scene")
         project.validate_expansion()
         preview = document.get("preview", {})
         area = preview.get("area", 0)
@@ -461,9 +475,13 @@ class Project:
             for area in self.rom.areas:
                 expected=(area.header[0]&0xc0)|self.layout_id(area.id)
                 if area.id<108 and output[area.offset]!=expected:raise FormatError('Exported area terrain binding mismatch')
-        if self.world["routes"] or self.world["nodes"]:
+        if self.world["routes"] or self.world["nodes"] or self.world.get("names"):
             from .world_expansion import verify_output
             verify_output(self,output)
+        from .story_scenes import writes as scene_writes
+        for offset,data,label in scene_writes(self):write(offset,data,label)
+        from .map_geometry import writes as geometry_writes
+        for offset,data,label in geometry_writes(self):write(offset,data,label)
         from .new_maps import writes as new_map_writes
         for offset,data,label in new_map_writes(self):write(offset,data,label)
         from .sprite_sets import writes as sprite_writes

@@ -7,7 +7,7 @@ from .private_dialogue import assign_record,plan,DATA,END
 from .layout_storage import cpu_address
 
 ROLE=Qt.ItemDataRole.UserRole
-KINDS=[('say','Say something'),('choice','Ask a Yes / No question'),('give_item','Give an item / spell / equipment'),('music','Play music'),('sound','Play a sound effect'),('screen','Screen effect'),('if_flag','Check a game flag'),('set_flag','Set a game flag'),('clear_flag','Clear a game flag'),('wait','Wait'),('call_text','Show existing NPC dialogue'),('face_player','Turn the hero'),('end','End conversation')]
+KINDS=[('say','Say something'),('choice','Ask a Yes / No question'),('give_item','Give an item / spell / equipment'),('music','Play music'),('sound','Play a sound effect'),('screen','Screen effect'),('if_flag','Check a game flag'),('set_flag','Set a game flag'),('clear_flag','Clear a game flag'),('wait','Wait'),('call_text','Show existing NPC dialogue'),('walk_player','Walk the hero'),('walk_object','Walk an NPC / object'),('turn_object','Turn an NPC / object'),('face_player','Turn the hero'),('end','End conversation')]
 
 class ActionDialog(QDialog):
  def __init__(self,parent,kind,node=None):
@@ -68,6 +68,15 @@ class ActionDialog(QDialog):
    if node:self.effect.setCurrentIndex(self.effect.findData(node['effect']))
    form.addRow('Effect',self.effect)
    note=QLabel('Effects finish before the next step. The paired fade always restores brightness.');note.setWordWrap(True);box.addWidget(note)
+  elif kind in ('walk_player','walk_object','turn_object'):
+   self.direction=QComboBox();self.direction.addItems(['Up','Right','Down','Left']);self.direction.setCurrentIndex(node['direction'] if node else 0);form.addRow('Direction',self.direction)
+   self.distance=QSpinBox();self.distance.setRange(1,63);self.distance.setValue(node.get('tiles',1) if node else 1)
+   if kind!='turn_object':form.addRow('Tiles to walk',self.distance)
+   self.actor=QComboBox()
+   for i,o in enumerate(parent.project.objects(parent.area)[:16]):self.actor.addItem(f'Object ${i:02X} · sprite ${o[6]&127:02X} · starts at ({o[3]&63}, {o[2]&63})',i)
+   self.actor.setCurrentIndex(self.actor.findData(node['actor_object'] if node and 'actor_object' in node else parent.index))
+   if kind!='walk_player':form.addRow('Actor on this map',self.actor)
+   note=QLabel('Movement is relative to the actor’s position when this step runs. Steps wait for movement to finish. Use consecutive directions for corners. Objects must be present; check walls, the hero’s position, and repeated conversations in game. Runtime reassignment can change which actor occupies a slot.');note.setWordWrap(True);box.addWidget(note)
   elif kind=='face_player':
    self.direction=QComboBox();self.direction.addItems(['Up','Right','Down','Left']);self.direction.setCurrentIndex(node['direction'] if node else 0);form.addRow('Face',self.direction)
   elif kind=='end':
@@ -94,6 +103,10 @@ class ActionDialog(QDialog):
   elif k=='give_item':n.update(item=self.item.currentData(),quantity=self.quantity.value())
   elif k in ('music','sound'):n['id']=self.audio.currentData()
   elif k=='screen':n['effect']=self.effect.currentData()
+  elif k in ('walk_player','walk_object','turn_object'):
+   n['direction']=self.direction.currentIndex()
+   if k!='turn_object':n['tiles']=self.distance.value()
+   if k!='walk_player':n.update(actor_area=self.parent().area,actor_object=self.actor.currentData())
   elif k=='face_player':n['direction']=self.direction.currentIndex()
   elif k=='end':pass
   elif k=='wait':n['frames']=self.frames.value()

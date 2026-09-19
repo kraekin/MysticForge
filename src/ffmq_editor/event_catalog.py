@@ -49,6 +49,9 @@ class EventCatalog:
         for i in range(80):add(world_entry(rom,i),f'World / cutscene ${i:02X}')
         for i,(address,extent) in enumerate(fragments(rom)):add(address,f'Text fragment ${i:02X}',extent=extent)
         add(0x038686,'Shared chest interaction')
+        from .events import opening_entry
+        opening=opening_entry(rom)
+        if opening is not None:add(opening,'Hill of Destiny — opening cutscene')
         for area in rom.areas:
             for index,obj in enumerate(project.objects(area.id)):
                 kind=(obj[5]>>3)&3

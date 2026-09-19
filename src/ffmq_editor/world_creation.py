@@ -1,5 +1,5 @@
 """Create a connected overworld location without changing existing IDs."""
-from PySide6.QtWidgets import QDialog,QVBoxLayout,QFormLayout,QLabel,QComboBox,QSpinBox,QPushButton
+from PySide6.QtWidgets import QDialog,QVBoxLayout,QFormLayout,QLabel,QComboBox,QSpinBox,QPushButton,QLineEdit
 from .world import DIRECTIONS,position
 from .world_expansion import nodes,add_node,node_label
 from .expanded_content_editor import commit
@@ -24,9 +24,14 @@ def open_new_location(w,source,direction):
  for n in sorted(w.project.newmaps):entry.addItem(f'{w.rom.areas[n].name} · NEW area ${n:02X}',n)
  entry.setCurrentIndex(max(0,entry.findData(23)));form.addRow('Destination',entry)
  flag=QSpinBox();flag.setRange(1,255);flag.setDisplayIntegerBase(16);flag.setPrefix('$');flag.setValue(6);form.addRow('Required story flag',flag)
- hint=QLabel('New maps currently reuse Foresta’s in-game location name. Default $06 is set initially and may change with progression. Choose the flag that should unlock this path. The destination’s exit must return to the overworld without forcing a different node.');hint.setWordWrap(True);box.addWidget(hint)
+ name=QLineEdit();name.setMaxLength(16);name.setPlaceholderText('Optional: name displayed in the game');form.addRow('In-game name',name)
+ hint=QLabel('Leave the name empty to reuse the destination’s original name. You can rename it later in Routes. Default $06 is set initially and may change with progression. Choose the flag that should unlock this path. The destination’s exit must return to the overworld without forcing a different node.');hint.setWordWrap(True);box.addWidget(hint)
  create=QPushButton('Create spot and two-way route');box.addWidget(create)
  def apply():
-  def operation():add_node(w.project,start.currentData(),way.currentIndex(),distance.value(),23 if entry.currentData() in w.project.newmaps else entry.currentData(),entry.currentData(),flag.value())
+  def operation():
+   add_node(w.project,start.currentData(),way.currentIndex(),distance.value(),23 if entry.currentData() in w.project.newmaps else entry.currentData(),entry.currentData(),flag.value())
+   if name.text().strip():
+    from .world_expansion import rename_spot
+    rename_spot(w.project,max(nodes(w.project)),name.text())
   if commit(w,operation,'Add overworld location and routes'):d.accept();w.world_editor.node.setValue(max(nodes(w.project)))
  create.clicked.connect(apply);w.new_world_dialog=d;d.setModal(True);d.show()

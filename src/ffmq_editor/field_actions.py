@@ -14,6 +14,20 @@ def field_action(action,value):
         return 'No field operation'+reference
     if action in (0x22,0x2a):return f'Apply map change ${value:02X}'+(' and refresh terrain' if action==0x2a else '')
     if action in (0x23,0x2b):return f'Copy metatile definitions · copy list ${value:02X}'+(' and refresh terrain' if action==0x2b else '')
+    if action==0x25:
+        if value in (4,5,6,9,10,11,12,13,15,16,17,23,26,41):return 'No scene operation'+reference
+        names={2:'Queue native visual effect $F5 / mode $03',
+               0x14:'Queue native visual effect $81 / mode $80 and wait',
+               0x2b:'Coordinated two-object movement: 12 steps up, then 4 right; finish facing down',
+               0x2c:'Coordinated two-object movement: 3 steps right, then 2 up',
+               0x2d:'Scripted player traversal: clear flag $54, follow built-in route, set flag $55',
+               0x2e:'Scripted player traversal: clear flag $55, follow built-in route, set flag $54'}
+        if value in names:return names[value]+reference
+        return 'Native scene routine (visual meaning not verified)'+reference
+    if 0x70<=action<=0x7f:
+        if value==4:return 'Service one field update / frame'
+        if value==5:return 'Update objects and wait for next field frame'
+        return 'Native player scene routine (meaning not fully verified)'+reference
     if action==0x26:return f'Send music command · track ${value&31:02X}'
     if action==0x27:return f'Play sound effect ${value:02X}'
     if action==0x29:return f'Set current area ID to ${value:02X} (does not load the map itself)'

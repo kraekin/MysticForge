@@ -25,6 +25,8 @@ def plan_expanded(project):
     rom=project.rom;verify_profile(rom)
     from .expanded_content import active,writes as content_writes
     from .world_expansion import active as world_active,writes as world_writes
+    from .map_geometry import writes as geometry_writes
+    from .story_scenes import writes as scene_writes
     from .new_maps import writes as map_writes
     from .sprite_sets import writes as sprite_writes
     from .landmarks import writes as landmark_writes
@@ -34,7 +36,7 @@ def plan_expanded(project):
     content=content_writes(project) if active(project) else []
     world=world_writes(project) if world_active(project) else []
     groups={'Objects / metatiles / entrances':content,'Overworld routes':world,
-            'Map selectors':map_writes(project),'Sprite descriptors':sprite_writes(project),
+            'Story movement':scene_writes(project),'Map dimensions':geometry_writes(project),'Map selectors':map_writes(project),'Sprite descriptors':sprite_writes(project),
             'Overworld artwork':landmark_writes(project),'NPC events':dialogue_writes(project)}
     fixed=[(TABLE,bytes(TABLE_SIZE),'layout pointers')]+[w for items in groups.values() for w in items]
     arena=ExpandedArena(fixed)

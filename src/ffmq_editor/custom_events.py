@@ -74,6 +74,7 @@ def validate_speaker_maps(record,areas):
  """Call after record compilation, which validates the tree shape."""
  def visit(nodes):
   for node in nodes:
+   if node['kind'] in ('walk_object','turn_object') and any(area!=node['actor_area'] for area in areas):raise FormatError('The movement object belongs to a different map setup.')
    if node['kind']=='say' and node.get('speaker')=='object':
     if any(area!=node['speaker_area'] for area in areas):raise FormatError('An NPC speaker belongs to a different map setup. Choose a speaker on this map.')
    for key,_ in branches(node):visit(node[key])
@@ -104,7 +105,7 @@ def compile_actions(p,actions,address):
   for n in nodes:
    count+=1
    if count>256 or not isinstance(n,dict):raise FormatError('An event supports at most 256 actions.')
-   kind=n.get('kind');keys={'say':{'text'},'set_flag':{'flag'},'clear_flag':{'flag'},'if_flag':{'flag','then','otherwise'},'wait':{'frames'},'call_text':{'npc'},'face_player':{'direction'},'end':set(),'choice':{'text','yes','no'},'give_item':{'item','quantity','received','full'},'music':{'id'},'sound':{'id'},'screen':{'effect'}}.get(kind)
+   kind=n.get('kind');keys={'say':{'text'},'set_flag':{'flag'},'clear_flag':{'flag'},'if_flag':{'flag','then','otherwise'},'wait':{'frames'},'call_text':{'npc'},'face_player':{'direction'},'walk_player':{'direction','tiles'},'walk_object':{'direction','tiles','actor_area','actor_object'},'turn_object':{'direction','actor_area','actor_object'},'end':set(),'choice':{'text','yes','no'},'give_item':{'item','quantity','received','full'},'music':{'id'},'sound':{'id'},'screen':{'effect'}}.get(kind)
    optional={'speaker','speaker_area','speaker_object'} if kind=='say' else {'is_set'} if kind=='if_flag' else set()
    if keys is None or not keys|{'kind'}<=set(n) or set(n)-(keys|{'kind'}|optional):raise FormatError('Unsupported custom event action or fields.')
    if kind=='say':
@@ -152,6 +153,9 @@ def compile_actions(p,actions,address):
      # A single paired action cannot strand subsequent dialogue in darkness.
      emit(bytes.fromhex('0c10010f2c032005e11e2c0620'))
     else:raise FormatError('Choose screen shake or fade out and back in.')
+   elif kind in ('walk_player','walk_object','turn_object'):
+    from .scene_commands import movement
+    emit(movement(p,n))
    elif kind=='face_player':emit(bytes((0x2c,field(n,'direction',0,3)<<4,0x54)))
    elif kind=='end':emit(b'\x00')
    elif kind in ('set_flag','clear_flag'):emit(bytes((0x23 if kind=='set_flag' else 0x2b,field(n,'flag',0,255))))
@@ -188,6 +192,9 @@ def label(n):
  if k=='say':return speaker_label(n)+' says: '+n['text'].replace('\n',' / ')[:100]
  if k=='if_flag':return 'If '+flag_label(n['flag'])+(' is set' if n.get('is_set',True) else ' is clear')
  if k in ('set_flag','clear_flag'):return ('Set ' if k=='set_flag' else 'Clear ')+flag_label(n['flag'])
+ if k in ('walk_player','walk_object','turn_object'):
+  who='hero' if k=='walk_player' else f"object ${n['actor_object']:02X}"
+  return ('Turn ' if k=='turn_object' else 'Walk ')+who+' '+('up','right','down','left')[n['direction']]+('' if k=='turn_object' else f" · {n['tiles']} tiles")
  if k=='face_player':return 'Turn hero '+('up','right','down','left')[n['direction']]
  if k=='end':return 'End conversation here'
  if k=='wait':return f"Wait {n['frames']} frames"
