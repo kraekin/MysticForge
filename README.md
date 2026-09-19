@@ -34,7 +34,7 @@
 
 ## Current Status & Known Issues
 
-* **Known Issue:** New overworld locations cannot be named yet. They seem to pull their names from the map's size template (needs more research).
+* **Known Issue:** Editor can be a bit sluggish, I am working through to improve performance, some stuff has been improved, but start up can be a bit slow sometimes. 
 * **Scripting/Events:** Event and script editing is partially implemented; basic editing works, but advanced actions are still in progress.
 * **Testing:** I've tested everything I could, but I haven't completed a full playthrough to verify every edge case. Expect bugs or potential game-breaking issues.
 * **UI/Labels:** Some labels, menus, or terms might be named oddly. I plan on doing a pass soon to clean up the wording and interface.
