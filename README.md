@@ -21,6 +21,11 @@
 
 ## Latest Updates
 
+### Sept 19, 2026
+* **Map/Overworld Editing:** Various enhancements and additions to map and overworld editing. Tile sizes are bigger and easier to see. you can add new overworld locations and maps, change their name on the overworld. change map sizes, etc. 
+
+* **General:** Prepping for 0.3 release. Added a scene edtior and currently allows editing of a few of the cutscenes. the scene where Kaeli goes to get her axe and then joins the party is almost fully editable, except for the mothers destination. A few other scenes are somewhat editable. Be very wary when using the scene editor right now, I know the Kaeli axe scene works, but I am unsure about the rest, it looks fine, but I havent tested everything yet.
+
 ### Sept 18, 2026
 * **Events & Scripts:** Added a bunch of event editing tools. You can now create new NPCs, assign them custom dialogue, or write an entire event sequence. Actions are currently limited, but the basics are there.
 * **General:** Various additions and bug fixes throughout. Just play around with it to see what's new. Make sure to back up your files first!
