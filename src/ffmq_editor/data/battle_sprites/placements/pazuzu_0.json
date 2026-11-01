@@ -1,0 +1,357 @@
+{
+ "frameName": "pazuzu",
+ "frameIndex": 0,
+ "enemy": 78,
+ "cols": 10,
+ "rows": 10,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 0
+  },
+  {
+   "cell": 1,
+   "tile": 1
+  },
+  {
+   "cell": 3,
+   "tile": 2
+  },
+  {
+   "cell": 4,
+   "tile": 3
+  },
+  {
+   "cell": 5,
+   "tile": 4
+  },
+  {
+   "cell": 6,
+   "tile": 5
+  },
+  {
+   "cell": 7,
+   "tile": 6
+  },
+  {
+   "cell": 8,
+   "tile": 7
+  },
+  {
+   "cell": 9,
+   "tile": 8
+  },
+  {
+   "cell": 10,
+   "tile": 9
+  },
+  {
+   "cell": 11,
+   "tile": 10
+  },
+  {
+   "cell": 12,
+   "tile": 11
+  },
+  {
+   "cell": 13,
+   "tile": 12
+  },
+  {
+   "cell": 14,
+   "tile": 13
+  },
+  {
+   "cell": 15,
+   "tile": 14
+  },
+  {
+   "cell": 16,
+   "tile": 15
+  },
+  {
+   "cell": 17,
+   "tile": 16
+  },
+  {
+   "cell": 18,
+   "tile": 17
+  },
+  {
+   "cell": 19,
+   "tile": 18
+  },
+  {
+   "cell": 20,
+   "tile": 19
+  },
+  {
+   "cell": 21,
+   "tile": 20
+  },
+  {
+   "cell": 22,
+   "tile": 21
+  },
+  {
+   "cell": 23,
+   "tile": 22
+  },
+  {
+   "cell": 24,
+   "tile": 23
+  },
+  {
+   "cell": 25,
+   "tile": 24
+  },
+  {
+   "cell": 26,
+   "tile": 25
+  },
+  {
+   "cell": 27,
+   "tile": 26
+  },
+  {
+   "cell": 28,
+   "tile": 27
+  },
+  {
+   "cell": 29,
+   "tile": 28
+  },
+  {
+   "cell": 30,
+   "tile": 29
+  },
+  {
+   "cell": 31,
+   "tile": 30
+  },
+  {
+   "cell": 32,
+   "tile": 31
+  },
+  {
+   "cell": 33,
+   "tile": 32
+  },
+  {
+   "cell": 34,
+   "tile": 33
+  },
+  {
+   "cell": 35,
+   "tile": 34
+  },
+  {
+   "cell": 36,
+   "tile": 35
+  },
+  {
+   "cell": 37,
+   "tile": 36
+  },
+  {
+   "cell": 38,
+   "tile": 37
+  },
+  {
+   "cell": 39,
+   "tile": 38
+  },
+  {
+   "cell": 40,
+   "tile": 39
+  },
+  {
+   "cell": 41,
+   "tile": 40
+  },
+  {
+   "cell": 42,
+   "tile": 41
+  },
+  {
+   "cell": 43,
+   "tile": 42
+  },
+  {
+   "cell": 44,
+   "tile": 43
+  },
+  {
+   "cell": 45,
+   "tile": 44
+  },
+  {
+   "cell": 46,
+   "tile": 45
+  },
+  {
+   "cell": 47,
+   "tile": 46
+  },
+  {
+   "cell": 48,
+   "tile": 47
+  },
+  {
+   "cell": 49,
+   "tile": 48
+  },
+  {
+   "cell": 50,
+   "tile": 49
+  },
+  {
+   "cell": 51,
+   "tile": 50
+  },
+  {
+   "cell": 52,
+   "tile": 51
+  },
+  {
+   "cell": 53,
+   "tile": 52
+  },
+  {
+   "cell": 54,
+   "tile": 53
+  },
+  {
+   "cell": 55,
+   "tile": 54
+  },
+  {
+   "cell": 56,
+   "tile": 55
+  },
+  {
+   "cell": 57,
+   "tile": 56
+  },
+  {
+   "cell": 58,
+   "tile": 57
+  },
+  {
+   "cell": 59,
+   "tile": 58
+  },
+  {
+   "cell": 61,
+   "tile": 59
+  },
+  {
+   "cell": 62,
+   "tile": 60
+  },
+  {
+   "cell": 63,
+   "tile": 61
+  },
+  {
+   "cell": 64,
+   "tile": 62
+  },
+  {
+   "cell": 65,
+   "tile": 63
+  },
+  {
+   "cell": 66,
+   "tile": 64
+  },
+  {
+   "cell": 67,
+   "tile": 65
+  },
+  {
+   "cell": 68,
+   "tile": 66
+  },
+  {
+   "cell": 71,
+   "tile": 67
+  },
+  {
+   "cell": 72,
+   "tile": 68
+  },
+  {
+   "cell": 73,
+   "tile": 69
+  },
+  {
+   "cell": 74,
+   "tile": 70
+  },
+  {
+   "cell": 75,
+   "tile": 71
+  },
+  {
+   "cell": 76,
+   "tile": 72
+  },
+  {
+   "cell": 77,
+   "tile": 73
+  },
+  {
+   "cell": 82,
+   "tile": 74
+  },
+  {
+   "cell": 83,
+   "tile": 75
+  },
+  {
+   "cell": 85,
+   "tile": 76
+  },
+  {
+   "cell": 86,
+   "tile": 77
+  },
+  {
+   "cell": 87,
+   "tile": 78
+  },
+  {
+   "cell": 90,
+   "tile": 79
+  },
+  {
+   "cell": 91,
+   "tile": 80
+  },
+  {
+   "cell": 92,
+   "tile": 81
+  },
+  {
+   "cell": 93,
+   "tile": 82
+  },
+  {
+   "cell": 94,
+   "tile": 83
+  },
+  {
+   "cell": 95,
+   "tile": 84
+  },
+  {
+   "cell": 96,
+   "tile": 85
+  },
+  {
+   "cell": 97,
+   "tile": 86
+  }
+ ]
+}

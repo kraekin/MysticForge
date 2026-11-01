@@ -1,0 +1,81 @@
+{
+ "frameName": "scorpion",
+ "frameIndex": 1,
+ "enemy": 46,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 14,
+   "tile": 26
+  },
+  {
+   "cell": 15,
+   "tile": 27
+  },
+  {
+   "cell": 19,
+   "tile": 28
+  },
+  {
+   "cell": 20,
+   "tile": 29
+  },
+  {
+   "cell": 21,
+   "tile": 30
+  },
+  {
+   "cell": 22,
+   "tile": 31
+  },
+  {
+   "cell": 24,
+   "tile": 32
+  },
+  {
+   "cell": 25,
+   "tile": 33
+  },
+  {
+   "cell": 26,
+   "tile": 18
+  },
+  {
+   "cell": 27,
+   "tile": 19
+  },
+  {
+   "cell": 28,
+   "tile": 34
+  },
+  {
+   "cell": 29,
+   "tile": 35
+  },
+  {
+   "cell": 30,
+   "tile": 36
+  },
+  {
+   "cell": 31,
+   "tile": 37
+  },
+  {
+   "cell": 32,
+   "tile": 38
+  },
+  {
+   "cell": 33,
+   "tile": 39
+  },
+  {
+   "cell": 34,
+   "tile": 40
+  },
+  {
+   "cell": 35,
+   "tile": 41
+  }
+ ]
+}

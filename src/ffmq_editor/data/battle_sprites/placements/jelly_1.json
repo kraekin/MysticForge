@@ -1,0 +1,77 @@
+{
+ "frameName": "jelly",
+ "frameIndex": 1,
+ "enemy": 7,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 18,
+   "tile": 0
+  },
+  {
+   "cell": 19,
+   "tile": 18
+  },
+  {
+   "cell": 21,
+   "tile": 19
+  },
+  {
+   "cell": 22,
+   "tile": 20
+  },
+  {
+   "cell": 23,
+   "tile": 21
+  },
+  {
+   "cell": 24,
+   "tile": 22
+  },
+  {
+   "cell": 25,
+   "tile": 23
+  },
+  {
+   "cell": 26,
+   "tile": 24
+  },
+  {
+   "cell": 27,
+   "tile": 25
+  },
+  {
+   "cell": 28,
+   "tile": 26
+  },
+  {
+   "cell": 29,
+   "tile": 27
+  },
+  {
+   "cell": 30,
+   "tile": 28
+  },
+  {
+   "cell": 31,
+   "tile": 29
+  },
+  {
+   "cell": 32,
+   "tile": 30
+  },
+  {
+   "cell": 33,
+   "tile": 31
+  },
+  {
+   "cell": 34,
+   "tile": 32
+  },
+  {
+   "cell": 35,
+   "tile": 33
+  }
+ ]
+}

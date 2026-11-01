@@ -1,0 +1,193 @@
+{
+ "frameName": "chimera",
+ "frameIndex": 2,
+ "enemy": 62,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 9,
+   "tile": 87
+  },
+  {
+   "cell": 11,
+   "tile": 88
+  },
+  {
+   "cell": 12,
+   "tile": 89
+  },
+  {
+   "cell": 16,
+   "tile": 90
+  },
+  {
+   "cell": 17,
+   "tile": 91
+  },
+  {
+   "cell": 18,
+   "tile": 92
+  },
+  {
+   "cell": 19,
+   "tile": 93
+  },
+  {
+   "cell": 20,
+   "tile": 94
+  },
+  {
+   "cell": 21,
+   "tile": 95
+  },
+  {
+   "cell": 24,
+   "tile": 96
+  },
+  {
+   "cell": 25,
+   "tile": 97
+  },
+  {
+   "cell": 26,
+   "tile": 98
+  },
+  {
+   "cell": 27,
+   "tile": 99
+  },
+  {
+   "cell": 28,
+   "tile": 100
+  },
+  {
+   "cell": 29,
+   "tile": 101
+  },
+  {
+   "cell": 30,
+   "tile": 102
+  },
+  {
+   "cell": 32,
+   "tile": 103
+  },
+  {
+   "cell": 33,
+   "tile": 104
+  },
+  {
+   "cell": 34,
+   "tile": 105
+  },
+  {
+   "cell": 35,
+   "tile": 106
+  },
+  {
+   "cell": 36,
+   "tile": 107
+  },
+  {
+   "cell": 37,
+   "tile": 108
+  },
+  {
+   "cell": 38,
+   "tile": 79
+  },
+  {
+   "cell": 39,
+   "tile": 80
+  },
+  {
+   "cell": 40,
+   "tile": 109
+  },
+  {
+   "cell": 41,
+   "tile": 110
+  },
+  {
+   "cell": 42,
+   "tile": 111
+  },
+  {
+   "cell": 43,
+   "tile": 112
+  },
+  {
+   "cell": 44,
+   "tile": 113
+  },
+  {
+   "cell": 45,
+   "tile": 114
+  },
+  {
+   "cell": 46,
+   "tile": 81
+  },
+  {
+   "cell": 47,
+   "tile": 82
+  },
+  {
+   "cell": 49,
+   "tile": 115
+  },
+  {
+   "cell": 50,
+   "tile": 116
+  },
+  {
+   "cell": 51,
+   "tile": 117
+  },
+  {
+   "cell": 52,
+   "tile": 118
+  },
+  {
+   "cell": 53,
+   "tile": 119
+  },
+  {
+   "cell": 54,
+   "tile": 46
+  },
+  {
+   "cell": 56,
+   "tile": 47
+  },
+  {
+   "cell": 57,
+   "tile": 48
+  },
+  {
+   "cell": 58,
+   "tile": 49
+  },
+  {
+   "cell": 59,
+   "tile": 120
+  },
+  {
+   "cell": 60,
+   "tile": 121
+  },
+  {
+   "cell": 61,
+   "tile": 52
+  },
+  {
+   "cell": 62,
+   "tile": 53
+  },
+  {
+   "cell": 63,
+   "tile": 54
+  }
+ ]
+}

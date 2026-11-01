@@ -1,0 +1,237 @@
+{
+ "frameName": "minotaur-zombie",
+ "frameIndex": 2,
+ "enemy": 57,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 66
+  },
+  {
+   "cell": 1,
+   "tile": 67
+  },
+  {
+   "cell": 2,
+   "tile": 2
+  },
+  {
+   "cell": 3,
+   "tile": 56
+  },
+  {
+   "cell": 4,
+   "tile": 57
+  },
+  {
+   "cell": 5,
+   "tile": 68
+  },
+  {
+   "cell": 8,
+   "tile": 69
+  },
+  {
+   "cell": 9,
+   "tile": 70
+  },
+  {
+   "cell": 10,
+   "tile": 71
+  },
+  {
+   "cell": 11,
+   "tile": 72
+  },
+  {
+   "cell": 12,
+   "tile": 10
+  },
+  {
+   "cell": 13,
+   "tile": 73
+  },
+  {
+   "cell": 14,
+   "tile": 74
+  },
+  {
+   "cell": 15,
+   "tile": 75
+  },
+  {
+   "cell": 16,
+   "tile": 13
+  },
+  {
+   "cell": 17,
+   "tile": 76
+  },
+  {
+   "cell": 18,
+   "tile": 77
+  },
+  {
+   "cell": 19,
+   "tile": 78
+  },
+  {
+   "cell": 20,
+   "tile": 79
+  },
+  {
+   "cell": 21,
+   "tile": 80
+  },
+  {
+   "cell": 22,
+   "tile": 81
+  },
+  {
+   "cell": 23,
+   "tile": 82
+  },
+  {
+   "cell": 24,
+   "tile": 21
+  },
+  {
+   "cell": 25,
+   "tile": 83
+  },
+  {
+   "cell": 26,
+   "tile": 84
+  },
+  {
+   "cell": 27,
+   "tile": 85
+  },
+  {
+   "cell": 28,
+   "tile": 86
+  },
+  {
+   "cell": 29,
+   "tile": 87
+  },
+  {
+   "cell": 30,
+   "tile": 88
+  },
+  {
+   "cell": 31,
+   "tile": 89
+  },
+  {
+   "cell": 33,
+   "tile": 90
+  },
+  {
+   "cell": 34,
+   "tile": 91
+  },
+  {
+   "cell": 35,
+   "tile": 92
+  },
+  {
+   "cell": 36,
+   "tile": 32
+  },
+  {
+   "cell": 37,
+   "tile": 33
+  },
+  {
+   "cell": 38,
+   "tile": 93
+  },
+  {
+   "cell": 39,
+   "tile": 94
+  },
+  {
+   "cell": 41,
+   "tile": 36
+  },
+  {
+   "cell": 42,
+   "tile": 37
+  },
+  {
+   "cell": 43,
+   "tile": 95
+  },
+  {
+   "cell": 44,
+   "tile": 96
+  },
+  {
+   "cell": 45,
+   "tile": 97
+  },
+  {
+   "cell": 46,
+   "tile": 98
+  },
+  {
+   "cell": 47,
+   "tile": 99
+  },
+  {
+   "cell": 50,
+   "tile": 43
+  },
+  {
+   "cell": 51,
+   "tile": 44
+  },
+  {
+   "cell": 52,
+   "tile": 45
+  },
+  {
+   "cell": 53,
+   "tile": 100
+  },
+  {
+   "cell": 54,
+   "tile": 101
+  },
+  {
+   "cell": 55,
+   "tile": 102
+  },
+  {
+   "cell": 57,
+   "tile": 49
+  },
+  {
+   "cell": 58,
+   "tile": 50
+  },
+  {
+   "cell": 59,
+   "tile": 51
+  },
+  {
+   "cell": 60,
+   "tile": 52
+  },
+  {
+   "cell": 61,
+   "tile": 53
+  },
+  {
+   "cell": 62,
+   "tile": 103
+  },
+  {
+   "cell": 63,
+   "tile": 55
+  }
+ ]
+}

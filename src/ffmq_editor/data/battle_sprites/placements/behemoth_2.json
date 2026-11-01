@@ -1,0 +1,193 @@
+{
+ "frameName": "behemoth",
+ "frameIndex": 2,
+ "enemy": 66,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 66
+  },
+  {
+   "cell": 3,
+   "tile": 67
+  },
+  {
+   "cell": 4,
+   "tile": 68
+  },
+  {
+   "cell": 9,
+   "tile": 50
+  },
+  {
+   "cell": 10,
+   "tile": 69
+  },
+  {
+   "cell": 11,
+   "tile": 70
+  },
+  {
+   "cell": 12,
+   "tile": 71
+  },
+  {
+   "cell": 13,
+   "tile": 72
+  },
+  {
+   "cell": 14,
+   "tile": 51
+  },
+  {
+   "cell": 17,
+   "tile": 52
+  },
+  {
+   "cell": 18,
+   "tile": 53
+  },
+  {
+   "cell": 19,
+   "tile": 12
+  },
+  {
+   "cell": 20,
+   "tile": 13
+  },
+  {
+   "cell": 21,
+   "tile": 54
+  },
+  {
+   "cell": 22,
+   "tile": 55
+  },
+  {
+   "cell": 24,
+   "tile": 56
+  },
+  {
+   "cell": 25,
+   "tile": 17
+  },
+  {
+   "cell": 26,
+   "tile": 73
+  },
+  {
+   "cell": 27,
+   "tile": 74
+  },
+  {
+   "cell": 28,
+   "tile": 75
+  },
+  {
+   "cell": 29,
+   "tile": 76
+  },
+  {
+   "cell": 30,
+   "tile": 57
+  },
+  {
+   "cell": 33,
+   "tile": 58
+  },
+  {
+   "cell": 34,
+   "tile": 77
+  },
+  {
+   "cell": 35,
+   "tile": 78
+  },
+  {
+   "cell": 36,
+   "tile": 79
+  },
+  {
+   "cell": 37,
+   "tile": 80
+  },
+  {
+   "cell": 38,
+   "tile": 59
+  },
+  {
+   "cell": 41,
+   "tile": 32
+  },
+  {
+   "cell": 42,
+   "tile": 81
+  },
+  {
+   "cell": 43,
+   "tile": 82
+  },
+  {
+   "cell": 44,
+   "tile": 83
+  },
+  {
+   "cell": 45,
+   "tile": 36
+  },
+  {
+   "cell": 46,
+   "tile": 37
+  },
+  {
+   "cell": 49,
+   "tile": 38
+  },
+  {
+   "cell": 50,
+   "tile": 62
+  },
+  {
+   "cell": 51,
+   "tile": 84
+  },
+  {
+   "cell": 52,
+   "tile": 85
+  },
+  {
+   "cell": 53,
+   "tile": 65
+  },
+  {
+   "cell": 54,
+   "tile": 43
+  },
+  {
+   "cell": 58,
+   "tile": 44
+  },
+  {
+   "cell": 59,
+   "tile": 45
+  },
+  {
+   "cell": 60,
+   "tile": 46
+  },
+  {
+   "cell": 61,
+   "tile": 47
+  },
+  {
+   "cell": 62,
+   "tile": 48
+  },
+  {
+   "cell": 63,
+   "tile": 49
+  }
+ ]
+}

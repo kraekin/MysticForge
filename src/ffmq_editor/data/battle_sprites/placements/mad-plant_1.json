@@ -1,0 +1,121 @@
+{
+ "frameName": "mad-plant",
+ "frameIndex": 1,
+ "enemy": 3,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 1,
+   "tile": 31
+  },
+  {
+   "cell": 2,
+   "tile": 32
+  },
+  {
+   "cell": 3,
+   "tile": 33
+  },
+  {
+   "cell": 6,
+   "tile": 34
+  },
+  {
+   "cell": 7,
+   "tile": 35
+  },
+  {
+   "cell": 8,
+   "tile": 36
+  },
+  {
+   "cell": 9,
+   "tile": 37
+  },
+  {
+   "cell": 10,
+   "tile": 38
+  },
+  {
+   "cell": 13,
+   "tile": 39
+  },
+  {
+   "cell": 14,
+   "tile": 40
+  },
+  {
+   "cell": 15,
+   "tile": 41
+  },
+  {
+   "cell": 16,
+   "tile": 42
+  },
+  {
+   "cell": 17,
+   "tile": 43
+  },
+  {
+   "cell": 19,
+   "tile": 44
+  },
+  {
+   "cell": 20,
+   "tile": 45
+  },
+  {
+   "cell": 21,
+   "tile": 46
+  },
+  {
+   "cell": 22,
+   "tile": 47
+  },
+  {
+   "cell": 23,
+   "tile": 48
+  },
+  {
+   "cell": 25,
+   "tile": 49
+  },
+  {
+   "cell": 26,
+   "tile": 50
+  },
+  {
+   "cell": 27,
+   "tile": 51
+  },
+  {
+   "cell": 28,
+   "tile": 52
+  },
+  {
+   "cell": 29,
+   "tile": 53
+  },
+  {
+   "cell": 31,
+   "tile": 54
+  },
+  {
+   "cell": 32,
+   "tile": 55
+  },
+  {
+   "cell": 33,
+   "tile": 28
+  },
+  {
+   "cell": 34,
+   "tile": 29
+  },
+  {
+   "cell": 35,
+   "tile": 56
+  }
+ ]
+}

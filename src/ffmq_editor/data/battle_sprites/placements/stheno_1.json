@@ -1,0 +1,233 @@
+{
+ "frameName": "stheno",
+ "frameIndex": 1,
+ "enemy": 61,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 50
+  },
+  {
+   "cell": 1,
+   "tile": 51
+  },
+  {
+   "cell": 2,
+   "tile": 52
+  },
+  {
+   "cell": 3,
+   "tile": 53
+  },
+  {
+   "cell": 4,
+   "tile": 54
+  },
+  {
+   "cell": 5,
+   "tile": 55
+  },
+  {
+   "cell": 9,
+   "tile": 56
+  },
+  {
+   "cell": 10,
+   "tile": 57
+  },
+  {
+   "cell": 11,
+   "tile": 58
+  },
+  {
+   "cell": 12,
+   "tile": 59
+  },
+  {
+   "cell": 13,
+   "tile": 60
+  },
+  {
+   "cell": 14,
+   "tile": 61
+  },
+  {
+   "cell": 16,
+   "tile": 62
+  },
+  {
+   "cell": 17,
+   "tile": 63
+  },
+  {
+   "cell": 18,
+   "tile": 64
+  },
+  {
+   "cell": 19,
+   "tile": 65
+  },
+  {
+   "cell": 20,
+   "tile": 10
+  },
+  {
+   "cell": 21,
+   "tile": 66
+  },
+  {
+   "cell": 22,
+   "tile": 67
+  },
+  {
+   "cell": 24,
+   "tile": 13
+  },
+  {
+   "cell": 25,
+   "tile": 68
+  },
+  {
+   "cell": 26,
+   "tile": 69
+  },
+  {
+   "cell": 27,
+   "tile": 70
+  },
+  {
+   "cell": 28,
+   "tile": 17
+  },
+  {
+   "cell": 29,
+   "tile": 18
+  },
+  {
+   "cell": 30,
+   "tile": 19
+  },
+  {
+   "cell": 31,
+   "tile": 20
+  },
+  {
+   "cell": 32,
+   "tile": 21
+  },
+  {
+   "cell": 33,
+   "tile": 22
+  },
+  {
+   "cell": 34,
+   "tile": 23
+  },
+  {
+   "cell": 35,
+   "tile": 24
+  },
+  {
+   "cell": 36,
+   "tile": 25
+  },
+  {
+   "cell": 37,
+   "tile": 26
+  },
+  {
+   "cell": 38,
+   "tile": 27
+  },
+  {
+   "cell": 39,
+   "tile": 28
+  },
+  {
+   "cell": 41,
+   "tile": 29
+  },
+  {
+   "cell": 42,
+   "tile": 30
+  },
+  {
+   "cell": 43,
+   "tile": 31
+  },
+  {
+   "cell": 44,
+   "tile": 32
+  },
+  {
+   "cell": 45,
+   "tile": 33
+  },
+  {
+   "cell": 46,
+   "tile": 34
+  },
+  {
+   "cell": 47,
+   "tile": 35
+  },
+  {
+   "cell": 49,
+   "tile": 36
+  },
+  {
+   "cell": 50,
+   "tile": 37
+  },
+  {
+   "cell": 51,
+   "tile": 38
+  },
+  {
+   "cell": 52,
+   "tile": 39
+  },
+  {
+   "cell": 53,
+   "tile": 40
+  },
+  {
+   "cell": 54,
+   "tile": 41
+  },
+  {
+   "cell": 55,
+   "tile": 42
+  },
+  {
+   "cell": 57,
+   "tile": 43
+  },
+  {
+   "cell": 58,
+   "tile": 44
+  },
+  {
+   "cell": 59,
+   "tile": 45
+  },
+  {
+   "cell": 60,
+   "tile": 46
+  },
+  {
+   "cell": 61,
+   "tile": 47
+  },
+  {
+   "cell": 62,
+   "tile": 48
+  },
+  {
+   "cell": 63,
+   "tile": 49
+  }
+ ]
+}

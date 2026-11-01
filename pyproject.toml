@@ -16,4 +16,4 @@ mysticforge = "ffmq_editor.app:main"
 where = ["src"]
 
 [tool.setuptools.package-data]
-ffmq_editor = ["data/*.bin", "data/*.json", "data/*.ico", "data/*.png", "data/*.svg"]
+ffmq_editor = ["data/*.bin", "data/*.json", "data/*.ico", "data/*.png", "data/*.svg", "data/battle_sprites/*.json", "data/battle_sprites/placements/*.json"]

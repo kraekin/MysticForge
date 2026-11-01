@@ -1,0 +1,157 @@
+{
+ "frameName": "squidite",
+ "frameIndex": 2,
+ "enemy": 68,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 18,
+   "tile": 79
+  },
+  {
+   "cell": 19,
+   "tile": 80
+  },
+  {
+   "cell": 20,
+   "tile": 81
+  },
+  {
+   "cell": 25,
+   "tile": 82
+  },
+  {
+   "cell": 26,
+   "tile": 83
+  },
+  {
+   "cell": 27,
+   "tile": 84
+  },
+  {
+   "cell": 28,
+   "tile": 85
+  },
+  {
+   "cell": 29,
+   "tile": 86
+  },
+  {
+   "cell": 32,
+   "tile": 87
+  },
+  {
+   "cell": 33,
+   "tile": 88
+  },
+  {
+   "cell": 34,
+   "tile": 89
+  },
+  {
+   "cell": 35,
+   "tile": 90
+  },
+  {
+   "cell": 36,
+   "tile": 91
+  },
+  {
+   "cell": 37,
+   "tile": 92
+  },
+  {
+   "cell": 38,
+   "tile": 93
+  },
+  {
+   "cell": 40,
+   "tile": 94
+  },
+  {
+   "cell": 41,
+   "tile": 95
+  },
+  {
+   "cell": 42,
+   "tile": 96
+  },
+  {
+   "cell": 43,
+   "tile": 97
+  },
+  {
+   "cell": 44,
+   "tile": 98
+  },
+  {
+   "cell": 45,
+   "tile": 99
+  },
+  {
+   "cell": 46,
+   "tile": 100
+  },
+  {
+   "cell": 48,
+   "tile": 101
+  },
+  {
+   "cell": 49,
+   "tile": 102
+  },
+  {
+   "cell": 50,
+   "tile": 103
+  },
+  {
+   "cell": 51,
+   "tile": 104
+  },
+  {
+   "cell": 52,
+   "tile": 105
+  },
+  {
+   "cell": 53,
+   "tile": 48
+  },
+  {
+   "cell": 54,
+   "tile": 78
+  },
+  {
+   "cell": 56,
+   "tile": 51
+  },
+  {
+   "cell": 57,
+   "tile": 106
+  },
+  {
+   "cell": 58,
+   "tile": 107
+  },
+  {
+   "cell": 59,
+   "tile": 54
+  },
+  {
+   "cell": 60,
+   "tile": 55
+  },
+  {
+   "cell": 61,
+   "tile": 56
+  },
+  {
+   "cell": 62,
+   "tile": 57
+  },
+  {
+   "cell": 63,
+   "tile": 58
+  }
+ ]
+}

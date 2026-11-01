@@ -1,0 +1,177 @@
+{
+ "frameName": "iflyte",
+ "frameIndex": 2,
+ "enemy": 60,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 70
+  },
+  {
+   "cell": 3,
+   "tile": 71
+  },
+  {
+   "cell": 4,
+   "tile": 72
+  },
+  {
+   "cell": 5,
+   "tile": 73
+  },
+  {
+   "cell": 9,
+   "tile": 74
+  },
+  {
+   "cell": 10,
+   "tile": 75
+  },
+  {
+   "cell": 11,
+   "tile": 76
+  },
+  {
+   "cell": 12,
+   "tile": 77
+  },
+  {
+   "cell": 13,
+   "tile": 78
+  },
+  {
+   "cell": 14,
+   "tile": 79
+  },
+  {
+   "cell": 17,
+   "tile": 80
+  },
+  {
+   "cell": 18,
+   "tile": 81
+  },
+  {
+   "cell": 19,
+   "tile": 82
+  },
+  {
+   "cell": 20,
+   "tile": 83
+  },
+  {
+   "cell": 21,
+   "tile": 84
+  },
+  {
+   "cell": 22,
+   "tile": 85
+  },
+  {
+   "cell": 23,
+   "tile": 86
+  },
+  {
+   "cell": 24,
+   "tile": 87
+  },
+  {
+   "cell": 25,
+   "tile": 88
+  },
+  {
+   "cell": 26,
+   "tile": 89
+  },
+  {
+   "cell": 27,
+   "tile": 90
+  },
+  {
+   "cell": 28,
+   "tile": 91
+  },
+  {
+   "cell": 29,
+   "tile": 92
+  },
+  {
+   "cell": 30,
+   "tile": 93
+  },
+  {
+   "cell": 31,
+   "tile": 94
+  },
+  {
+   "cell": 33,
+   "tile": 95
+  },
+  {
+   "cell": 34,
+   "tile": 96
+  },
+  {
+   "cell": 35,
+   "tile": 97
+  },
+  {
+   "cell": 36,
+   "tile": 98
+  },
+  {
+   "cell": 37,
+   "tile": 99
+  },
+  {
+   "cell": 38,
+   "tile": 100
+  },
+  {
+   "cell": 39,
+   "tile": 101
+  },
+  {
+   "cell": 41,
+   "tile": 102
+  },
+  {
+   "cell": 42,
+   "tile": 103
+  },
+  {
+   "cell": 43,
+   "tile": 104
+  },
+  {
+   "cell": 44,
+   "tile": 105
+  },
+  {
+   "cell": 45,
+   "tile": 106
+  },
+  {
+   "cell": 46,
+   "tile": 107
+  },
+  {
+   "cell": 51,
+   "tile": 108
+  },
+  {
+   "cell": 52,
+   "tile": 109
+  },
+  {
+   "cell": 59,
+   "tile": 110
+  },
+  {
+   "cell": 60,
+   "tile": 111
+  }
+ ]
+}

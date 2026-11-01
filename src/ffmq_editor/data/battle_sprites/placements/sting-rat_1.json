@@ -1,0 +1,97 @@
+{
+ "frameName": "sting-rat",
+ "frameIndex": 1,
+ "enemy": 51,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 12,
+   "tile": 4
+  },
+  {
+   "cell": 13,
+   "tile": 26
+  },
+  {
+   "cell": 14,
+   "tile": 27
+  },
+  {
+   "cell": 15,
+   "tile": 28
+  },
+  {
+   "cell": 16,
+   "tile": 29
+  },
+  {
+   "cell": 17,
+   "tile": 9
+  },
+  {
+   "cell": 18,
+   "tile": 10
+  },
+  {
+   "cell": 19,
+   "tile": 11
+  },
+  {
+   "cell": 20,
+   "tile": 30
+  },
+  {
+   "cell": 21,
+   "tile": 31
+  },
+  {
+   "cell": 22,
+   "tile": 14
+  },
+  {
+   "cell": 23,
+   "tile": 15
+  },
+  {
+   "cell": 24,
+   "tile": 16
+  },
+  {
+   "cell": 25,
+   "tile": 17
+  },
+  {
+   "cell": 26,
+   "tile": 32
+  },
+  {
+   "cell": 27,
+   "tile": 33
+  },
+  {
+   "cell": 28,
+   "tile": 20
+  },
+  {
+   "cell": 29,
+   "tile": 21
+  },
+  {
+   "cell": 31,
+   "tile": 22
+  },
+  {
+   "cell": 32,
+   "tile": 23
+  },
+  {
+   "cell": 33,
+   "tile": 24
+  },
+  {
+   "cell": 34,
+   "tile": 25
+  }
+ ]
+}

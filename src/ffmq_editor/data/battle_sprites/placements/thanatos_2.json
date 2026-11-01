@@ -1,0 +1,225 @@
+{
+ "frameName": "thanatos",
+ "frameIndex": 2,
+ "enemy": 63,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 1,
+   "tile": 82
+  },
+  {
+   "cell": 2,
+   "tile": 83
+  },
+  {
+   "cell": 3,
+   "tile": 84
+  },
+  {
+   "cell": 4,
+   "tile": 85
+  },
+  {
+   "cell": 5,
+   "tile": 86
+  },
+  {
+   "cell": 6,
+   "tile": 87
+  },
+  {
+   "cell": 7,
+   "tile": 88
+  },
+  {
+   "cell": 9,
+   "tile": 89
+  },
+  {
+   "cell": 10,
+   "tile": 90
+  },
+  {
+   "cell": 11,
+   "tile": 91
+  },
+  {
+   "cell": 12,
+   "tile": 92
+  },
+  {
+   "cell": 13,
+   "tile": 93
+  },
+  {
+   "cell": 14,
+   "tile": 94
+  },
+  {
+   "cell": 15,
+   "tile": 95
+  },
+  {
+   "cell": 16,
+   "tile": 96
+  },
+  {
+   "cell": 17,
+   "tile": 97
+  },
+  {
+   "cell": 18,
+   "tile": 98
+  },
+  {
+   "cell": 19,
+   "tile": 99
+  },
+  {
+   "cell": 20,
+   "tile": 100
+  },
+  {
+   "cell": 21,
+   "tile": 101
+  },
+  {
+   "cell": 22,
+   "tile": 102
+  },
+  {
+   "cell": 23,
+   "tile": 103
+  },
+  {
+   "cell": 24,
+   "tile": 104
+  },
+  {
+   "cell": 25,
+   "tile": 105
+  },
+  {
+   "cell": 26,
+   "tile": 106
+  },
+  {
+   "cell": 27,
+   "tile": 107
+  },
+  {
+   "cell": 28,
+   "tile": 108
+  },
+  {
+   "cell": 29,
+   "tile": 109
+  },
+  {
+   "cell": 30,
+   "tile": 110
+  },
+  {
+   "cell": 31,
+   "tile": 111
+  },
+  {
+   "cell": 32,
+   "tile": 112
+  },
+  {
+   "cell": 33,
+   "tile": 113
+  },
+  {
+   "cell": 34,
+   "tile": 114
+  },
+  {
+   "cell": 35,
+   "tile": 115
+  },
+  {
+   "cell": 36,
+   "tile": 116
+  },
+  {
+   "cell": 37,
+   "tile": 117
+  },
+  {
+   "cell": 38,
+   "tile": 118
+  },
+  {
+   "cell": 39,
+   "tile": 119
+  },
+  {
+   "cell": 42,
+   "tile": 120
+  },
+  {
+   "cell": 43,
+   "tile": 121
+  },
+  {
+   "cell": 44,
+   "tile": 122
+  },
+  {
+   "cell": 45,
+   "tile": 123
+  },
+  {
+   "cell": 46,
+   "tile": 124
+  },
+  {
+   "cell": 50,
+   "tile": 125
+  },
+  {
+   "cell": 51,
+   "tile": 126
+  },
+  {
+   "cell": 52,
+   "tile": 127
+  },
+  {
+   "cell": 53,
+   "tile": 128
+  },
+  {
+   "cell": 54,
+   "tile": 129
+  },
+  {
+   "cell": 55,
+   "tile": 130
+  },
+  {
+   "cell": 59,
+   "tile": 131
+  },
+  {
+   "cell": 60,
+   "tile": 132
+  },
+  {
+   "cell": 61,
+   "tile": 133
+  },
+  {
+   "cell": 62,
+   "tile": 134
+  },
+  {
+   "cell": 63,
+   "tile": 135
+  }
+ ]
+}

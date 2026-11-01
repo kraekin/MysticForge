@@ -1,0 +1,117 @@
+{
+ "frameName": "mummy",
+ "frameIndex": 1,
+ "enemy": 25,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 1,
+   "tile": 31
+  },
+  {
+   "cell": 2,
+   "tile": 1
+  },
+  {
+   "cell": 3,
+   "tile": 2
+  },
+  {
+   "cell": 4,
+   "tile": 32
+  },
+  {
+   "cell": 6,
+   "tile": 33
+  },
+  {
+   "cell": 7,
+   "tile": 34
+  },
+  {
+   "cell": 8,
+   "tile": 35
+  },
+  {
+   "cell": 9,
+   "tile": 7
+  },
+  {
+   "cell": 10,
+   "tile": 36
+  },
+  {
+   "cell": 11,
+   "tile": 37
+  },
+  {
+   "cell": 13,
+   "tile": 38
+  },
+  {
+   "cell": 14,
+   "tile": 39
+  },
+  {
+   "cell": 15,
+   "tile": 40
+  },
+  {
+   "cell": 16,
+   "tile": 41
+  },
+  {
+   "cell": 17,
+   "tile": 42
+  },
+  {
+   "cell": 19,
+   "tile": 43
+  },
+  {
+   "cell": 20,
+   "tile": 44
+  },
+  {
+   "cell": 21,
+   "tile": 45
+  },
+  {
+   "cell": 22,
+   "tile": 46
+  },
+  {
+   "cell": 25,
+   "tile": 47
+  },
+  {
+   "cell": 26,
+   "tile": 48
+  },
+  {
+   "cell": 27,
+   "tile": 25
+  },
+  {
+   "cell": 28,
+   "tile": 49
+  },
+  {
+   "cell": 31,
+   "tile": 50
+  },
+  {
+   "cell": 32,
+   "tile": 51
+  },
+  {
+   "cell": 33,
+   "tile": 52
+  },
+  {
+   "cell": 34,
+   "tile": 53
+  }
+ ]
+}

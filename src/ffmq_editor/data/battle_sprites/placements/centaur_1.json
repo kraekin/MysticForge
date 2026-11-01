@@ -1,0 +1,133 @@
+{
+ "frameName": "centaur",
+ "frameIndex": 1,
+ "enemy": 32,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 27
+  },
+  {
+   "cell": 1,
+   "tile": 28
+  },
+  {
+   "cell": 2,
+   "tile": 1
+  },
+  {
+   "cell": 3,
+   "tile": 29
+  },
+  {
+   "cell": 4,
+   "tile": 30
+  },
+  {
+   "cell": 6,
+   "tile": 31
+  },
+  {
+   "cell": 7,
+   "tile": 32
+  },
+  {
+   "cell": 8,
+   "tile": 33
+  },
+  {
+   "cell": 9,
+   "tile": 34
+  },
+  {
+   "cell": 10,
+   "tile": 35
+  },
+  {
+   "cell": 13,
+   "tile": 36
+  },
+  {
+   "cell": 14,
+   "tile": 37
+  },
+  {
+   "cell": 15,
+   "tile": 38
+  },
+  {
+   "cell": 16,
+   "tile": 9
+  },
+  {
+   "cell": 17,
+   "tile": 10
+  },
+  {
+   "cell": 18,
+   "tile": 11
+  },
+  {
+   "cell": 19,
+   "tile": 39
+  },
+  {
+   "cell": 20,
+   "tile": 13
+  },
+  {
+   "cell": 21,
+   "tile": 14
+  },
+  {
+   "cell": 22,
+   "tile": 15
+  },
+  {
+   "cell": 23,
+   "tile": 16
+  },
+  {
+   "cell": 24,
+   "tile": 17
+  },
+  {
+   "cell": 25,
+   "tile": 40
+  },
+  {
+   "cell": 26,
+   "tile": 19
+  },
+  {
+   "cell": 27,
+   "tile": 20
+  },
+  {
+   "cell": 28,
+   "tile": 21
+  },
+  {
+   "cell": 30,
+   "tile": 22
+  },
+  {
+   "cell": 31,
+   "tile": 23
+  },
+  {
+   "cell": 32,
+   "tile": 24
+  },
+  {
+   "cell": 33,
+   "tile": 25
+  },
+  {
+   "cell": 34,
+   "tile": 26
+  }
+ ]
+}

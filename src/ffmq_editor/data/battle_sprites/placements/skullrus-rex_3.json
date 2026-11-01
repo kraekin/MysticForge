@@ -1,0 +1,169 @@
+{
+ "frameName": "skullrus-rex",
+ "frameIndex": 3,
+ "enemy": 64,
+ "cols": 10,
+ "rows": 10,
+ "placement": [
+  {
+   "cell": 53,
+   "tile": 141
+  },
+  {
+   "cell": 54,
+   "tile": 142
+  },
+  {
+   "cell": 55,
+   "tile": 143
+  },
+  {
+   "cell": 61,
+   "tile": 144
+  },
+  {
+   "cell": 62,
+   "tile": 145
+  },
+  {
+   "cell": 63,
+   "tile": 146
+  },
+  {
+   "cell": 64,
+   "tile": 147
+  },
+  {
+   "cell": 65,
+   "tile": 148
+  },
+  {
+   "cell": 66,
+   "tile": 149
+  },
+  {
+   "cell": 68,
+   "tile": 150
+  },
+  {
+   "cell": 69,
+   "tile": 151
+  },
+  {
+   "cell": 71,
+   "tile": 152
+  },
+  {
+   "cell": 72,
+   "tile": 153
+  },
+  {
+   "cell": 73,
+   "tile": 154
+  },
+  {
+   "cell": 74,
+   "tile": 155
+  },
+  {
+   "cell": 75,
+   "tile": 156
+  },
+  {
+   "cell": 76,
+   "tile": 157
+  },
+  {
+   "cell": 77,
+   "tile": 158
+  },
+  {
+   "cell": 78,
+   "tile": 159
+  },
+  {
+   "cell": 79,
+   "tile": 160
+  },
+  {
+   "cell": 80,
+   "tile": 161
+  },
+  {
+   "cell": 81,
+   "tile": 162
+  },
+  {
+   "cell": 82,
+   "tile": 163
+  },
+  {
+   "cell": 83,
+   "tile": 164
+  },
+  {
+   "cell": 84,
+   "tile": 165
+  },
+  {
+   "cell": 85,
+   "tile": 166
+  },
+  {
+   "cell": 86,
+   "tile": 167
+  },
+  {
+   "cell": 87,
+   "tile": 168
+  },
+  {
+   "cell": 88,
+   "tile": 169
+  },
+  {
+   "cell": 89,
+   "tile": 170
+  },
+  {
+   "cell": 90,
+   "tile": 171
+  },
+  {
+   "cell": 91,
+   "tile": 172
+  },
+  {
+   "cell": 92,
+   "tile": 173
+  },
+  {
+   "cell": 93,
+   "tile": 174
+  },
+  {
+   "cell": 94,
+   "tile": 175
+  },
+  {
+   "cell": 95,
+   "tile": 176
+  },
+  {
+   "cell": 96,
+   "tile": 177
+  },
+  {
+   "cell": 97,
+   "tile": 178
+  },
+  {
+   "cell": 98,
+   "tile": 179
+  },
+  {
+   "cell": 99,
+   "tile": 180
+  }
+ ]
+}
