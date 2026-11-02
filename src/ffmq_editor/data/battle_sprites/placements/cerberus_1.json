@@ -1,0 +1,109 @@
+{
+ "frameName": "cerberus",
+ "frameIndex": 1,
+ "enemy": 49,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 36
+  },
+  {
+   "cell": 3,
+   "tile": 37
+  },
+  {
+   "cell": 8,
+   "tile": 38
+  },
+  {
+   "cell": 9,
+   "tile": 39
+  },
+  {
+   "cell": 10,
+   "tile": 40
+  },
+  {
+   "cell": 14,
+   "tile": 41
+  },
+  {
+   "cell": 15,
+   "tile": 42
+  },
+  {
+   "cell": 18,
+   "tile": 43
+  },
+  {
+   "cell": 19,
+   "tile": 44
+  },
+  {
+   "cell": 20,
+   "tile": 45
+  },
+  {
+   "cell": 21,
+   "tile": 46
+  },
+  {
+   "cell": 22,
+   "tile": 47
+  },
+  {
+   "cell": 23,
+   "tile": 48
+  },
+  {
+   "cell": 24,
+   "tile": 49
+  },
+  {
+   "cell": 25,
+   "tile": 50
+  },
+  {
+   "cell": 26,
+   "tile": 51
+  },
+  {
+   "cell": 27,
+   "tile": 52
+  },
+  {
+   "cell": 28,
+   "tile": 53
+  },
+  {
+   "cell": 29,
+   "tile": 54
+  },
+  {
+   "cell": 30,
+   "tile": 55
+  },
+  {
+   "cell": 31,
+   "tile": 56
+  },
+  {
+   "cell": 32,
+   "tile": 57
+  },
+  {
+   "cell": 33,
+   "tile": 58
+  },
+  {
+   "cell": 34,
+   "tile": 59
+  },
+  {
+   "cell": 35,
+   "tile": 60
+  }
+ ]
+}

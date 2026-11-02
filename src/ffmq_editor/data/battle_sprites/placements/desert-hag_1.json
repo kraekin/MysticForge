@@ -1,0 +1,125 @@
+{
+ "frameName": "desert-hag",
+ "frameIndex": 1,
+ "enemy": 26,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 3,
+   "tile": 29
+  },
+  {
+   "cell": 4,
+   "tile": 30
+  },
+  {
+   "cell": 5,
+   "tile": 2
+  },
+  {
+   "cell": 6,
+   "tile": 3
+  },
+  {
+   "cell": 7,
+   "tile": 4
+  },
+  {
+   "cell": 8,
+   "tile": 31
+  },
+  {
+   "cell": 9,
+   "tile": 32
+  },
+  {
+   "cell": 10,
+   "tile": 33
+  },
+  {
+   "cell": 11,
+   "tile": 8
+  },
+  {
+   "cell": 12,
+   "tile": 9
+  },
+  {
+   "cell": 13,
+   "tile": 10
+  },
+  {
+   "cell": 14,
+   "tile": 11
+  },
+  {
+   "cell": 15,
+   "tile": 34
+  },
+  {
+   "cell": 16,
+   "tile": 35
+  },
+  {
+   "cell": 17,
+   "tile": 14
+  },
+  {
+   "cell": 20,
+   "tile": 15
+  },
+  {
+   "cell": 21,
+   "tile": 36
+  },
+  {
+   "cell": 22,
+   "tile": 37
+  },
+  {
+   "cell": 23,
+   "tile": 18
+  },
+  {
+   "cell": 25,
+   "tile": 19
+  },
+  {
+   "cell": 26,
+   "tile": 20
+  },
+  {
+   "cell": 27,
+   "tile": 21
+  },
+  {
+   "cell": 28,
+   "tile": 22
+  },
+  {
+   "cell": 29,
+   "tile": 23
+  },
+  {
+   "cell": 31,
+   "tile": 24
+  },
+  {
+   "cell": 32,
+   "tile": 25
+  },
+  {
+   "cell": 33,
+   "tile": 26
+  },
+  {
+   "cell": 34,
+   "tile": 27
+  },
+  {
+   "cell": 35,
+   "tile": 28
+  }
+ ]
+}

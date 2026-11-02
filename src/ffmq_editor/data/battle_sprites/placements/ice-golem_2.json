@@ -1,0 +1,333 @@
+{
+ "frameName": "ice-golem",
+ "frameIndex": 2,
+ "enemy": 75,
+ "cols": 10,
+ "rows": 10,
+ "placement": [
+  {
+   "cell": 4,
+   "tile": 128
+  },
+  {
+   "cell": 5,
+   "tile": 129
+  },
+  {
+   "cell": 11,
+   "tile": 130
+  },
+  {
+   "cell": 12,
+   "tile": 131
+  },
+  {
+   "cell": 13,
+   "tile": 132
+  },
+  {
+   "cell": 14,
+   "tile": 133
+  },
+  {
+   "cell": 15,
+   "tile": 134
+  },
+  {
+   "cell": 16,
+   "tile": 135
+  },
+  {
+   "cell": 17,
+   "tile": 84
+  },
+  {
+   "cell": 18,
+   "tile": 85
+  },
+  {
+   "cell": 20,
+   "tile": 136
+  },
+  {
+   "cell": 21,
+   "tile": 137
+  },
+  {
+   "cell": 22,
+   "tile": 138
+  },
+  {
+   "cell": 23,
+   "tile": 139
+  },
+  {
+   "cell": 24,
+   "tile": 16
+  },
+  {
+   "cell": 25,
+   "tile": 17
+  },
+  {
+   "cell": 26,
+   "tile": 140
+  },
+  {
+   "cell": 27,
+   "tile": 141
+  },
+  {
+   "cell": 28,
+   "tile": 86
+  },
+  {
+   "cell": 29,
+   "tile": 87
+  },
+  {
+   "cell": 30,
+   "tile": 142
+  },
+  {
+   "cell": 31,
+   "tile": 23
+  },
+  {
+   "cell": 32,
+   "tile": 143
+  },
+  {
+   "cell": 33,
+   "tile": 144
+  },
+  {
+   "cell": 34,
+   "tile": 145
+  },
+  {
+   "cell": 35,
+   "tile": 146
+  },
+  {
+   "cell": 36,
+   "tile": 147
+  },
+  {
+   "cell": 37,
+   "tile": 148
+  },
+  {
+   "cell": 38,
+   "tile": 149
+  },
+  {
+   "cell": 39,
+   "tile": 150
+  },
+  {
+   "cell": 40,
+   "tile": 88
+  },
+  {
+   "cell": 41,
+   "tile": 89
+  },
+  {
+   "cell": 42,
+   "tile": 90
+  },
+  {
+   "cell": 43,
+   "tile": 151
+  },
+  {
+   "cell": 44,
+   "tile": 152
+  },
+  {
+   "cell": 45,
+   "tile": 37
+  },
+  {
+   "cell": 46,
+   "tile": 153
+  },
+  {
+   "cell": 47,
+   "tile": 154
+  },
+  {
+   "cell": 48,
+   "tile": 155
+  },
+  {
+   "cell": 49,
+   "tile": 156
+  },
+  {
+   "cell": 51,
+   "tile": 91
+  },
+  {
+   "cell": 52,
+   "tile": 92
+  },
+  {
+   "cell": 53,
+   "tile": 93
+  },
+  {
+   "cell": 54,
+   "tile": 157
+  },
+  {
+   "cell": 55,
+   "tile": 45
+  },
+  {
+   "cell": 56,
+   "tile": 158
+  },
+  {
+   "cell": 57,
+   "tile": 94
+  },
+  {
+   "cell": 58,
+   "tile": 95
+  },
+  {
+   "cell": 59,
+   "tile": 96
+  },
+  {
+   "cell": 62,
+   "tile": 97
+  },
+  {
+   "cell": 63,
+   "tile": 98
+  },
+  {
+   "cell": 64,
+   "tile": 99
+  },
+  {
+   "cell": 65,
+   "tile": 100
+  },
+  {
+   "cell": 66,
+   "tile": 101
+  },
+  {
+   "cell": 67,
+   "tile": 102
+  },
+  {
+   "cell": 68,
+   "tile": 103
+  },
+  {
+   "cell": 69,
+   "tile": 104
+  },
+  {
+   "cell": 71,
+   "tile": 105
+  },
+  {
+   "cell": 72,
+   "tile": 106
+  },
+  {
+   "cell": 73,
+   "tile": 107
+  },
+  {
+   "cell": 74,
+   "tile": 108
+  },
+  {
+   "cell": 75,
+   "tile": 109
+  },
+  {
+   "cell": 76,
+   "tile": 110
+  },
+  {
+   "cell": 77,
+   "tile": 111
+  },
+  {
+   "cell": 78,
+   "tile": 112
+  },
+  {
+   "cell": 81,
+   "tile": 113
+  },
+  {
+   "cell": 82,
+   "tile": 114
+  },
+  {
+   "cell": 83,
+   "tile": 115
+  },
+  {
+   "cell": 84,
+   "tile": 159
+  },
+  {
+   "cell": 86,
+   "tile": 117
+  },
+  {
+   "cell": 87,
+   "tile": 118
+  },
+  {
+   "cell": 88,
+   "tile": 160
+  },
+  {
+   "cell": 91,
+   "tile": 161
+  },
+  {
+   "cell": 92,
+   "tile": 121
+  },
+  {
+   "cell": 93,
+   "tile": 122
+  },
+  {
+   "cell": 94,
+   "tile": 162
+  },
+  {
+   "cell": 95,
+   "tile": 163
+  },
+  {
+   "cell": 96,
+   "tile": 164
+  },
+  {
+   "cell": 97,
+   "tile": 125
+  },
+  {
+   "cell": 98,
+   "tile": 165
+  },
+  {
+   "cell": 99,
+   "tile": 166
+  }
+ ]
+}

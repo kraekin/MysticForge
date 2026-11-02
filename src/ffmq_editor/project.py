@@ -177,7 +177,7 @@ class Project:
             data=self.rom.data[resource:resource+3]
         elif kind=="world_route" and resource in self.rom.route_sizes:
             data=self.rom.data[resource:resource+self.rom.route_sizes[resource]]
-        elif kind in ("terrain_graphic","metatile_graphics","metatile_attributes","properties","destination","world_node","world_action","world_gate","treasure","encounter","formation","monster_stat","monster_level","monster_attacks","monster_name","attack","attack_name","weapon","armor","character","battlefield"):
+        elif kind in ("terrain_graphic","metatile_graphics","metatile_attributes","properties","destination","world_node","world_action","world_gate","treasure","encounter","formation","monster_stat","monster_level","monster_attacks","monster_name","attack","attack_name","weapon","armor","character","battlefield","battle_graphic"):
             offset,size=span(kind,resource);data=self.rom.data[offset:offset+size]
         else:
             raise FormatError("Unknown edit resource")
@@ -426,7 +426,7 @@ class Project:
             elif kind == "object":
                 raw=bytes(self.get((kind,resource,i)) for i in range(7))
                 write(resource,raw,f"object record {resource:06X}")
-            elif kind in ("terrain_graphic","metatile_graphics","metatile_attributes","properties","destination","world_node","world_action","coordinate","world_route","world_gate","treasure","encounter","formation","monster_stat","monster_level","monster_attacks","monster_name","attack","attack_name","weapon","armor","character","battlefield"):
+            elif kind in ("terrain_graphic","metatile_graphics","metatile_attributes","properties","destination","world_node","world_action","coordinate","world_route","world_gate","treasure","encounter","formation","monster_stat","monster_level","monster_attacks","monster_name","attack","attack_name","weapon","armor","character","battlefield","battle_graphic"):
                 offset=resource if kind in ("coordinate","world_route") else span(kind,resource)[0]
                 raw=self.fixed(kind,resource)
                 from .database import TABLES,validate_record

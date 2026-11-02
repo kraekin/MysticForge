@@ -1,0 +1,105 @@
+{
+ "frameName": "mad-toad",
+ "frameIndex": 1,
+ "enemy": 11,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 8,
+   "tile": 20
+  },
+  {
+   "cell": 9,
+   "tile": 21
+  },
+  {
+   "cell": 13,
+   "tile": 22
+  },
+  {
+   "cell": 14,
+   "tile": 23
+  },
+  {
+   "cell": 15,
+   "tile": 24
+  },
+  {
+   "cell": 16,
+   "tile": 25
+  },
+  {
+   "cell": 18,
+   "tile": 26
+  },
+  {
+   "cell": 19,
+   "tile": 27
+  },
+  {
+   "cell": 20,
+   "tile": 28
+  },
+  {
+   "cell": 21,
+   "tile": 29
+  },
+  {
+   "cell": 22,
+   "tile": 30
+  },
+  {
+   "cell": 23,
+   "tile": 31
+  },
+  {
+   "cell": 24,
+   "tile": 32
+  },
+  {
+   "cell": 25,
+   "tile": 33
+  },
+  {
+   "cell": 26,
+   "tile": 34
+  },
+  {
+   "cell": 27,
+   "tile": 35
+  },
+  {
+   "cell": 28,
+   "tile": 36
+  },
+  {
+   "cell": 29,
+   "tile": 37
+  },
+  {
+   "cell": 30,
+   "tile": 38
+  },
+  {
+   "cell": 31,
+   "tile": 39
+  },
+  {
+   "cell": 32,
+   "tile": 40
+  },
+  {
+   "cell": 33,
+   "tile": 40
+  },
+  {
+   "cell": 34,
+   "tile": 42
+  },
+  {
+   "cell": 35,
+   "tile": 43
+  }
+ ]
+}

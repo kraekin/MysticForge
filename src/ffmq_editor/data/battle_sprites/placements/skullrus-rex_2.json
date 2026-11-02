@@ -1,0 +1,249 @@
+{
+ "frameName": "skullrus-rex",
+ "frameIndex": 2,
+ "enemy": 64,
+ "cols": 10,
+ "rows": 10,
+ "placement": [
+  {
+   "cell": 3,
+   "tile": 110
+  },
+  {
+   "cell": 4,
+   "tile": 111
+  },
+  {
+   "cell": 5,
+   "tile": 5
+  },
+  {
+   "cell": 6,
+   "tile": 6
+  },
+  {
+   "cell": 7,
+   "tile": 7
+  },
+  {
+   "cell": 8,
+   "tile": 8
+  },
+  {
+   "cell": 9,
+   "tile": 9
+  },
+  {
+   "cell": 12,
+   "tile": 0
+  },
+  {
+   "cell": 13,
+   "tile": 113
+  },
+  {
+   "cell": 14,
+   "tile": 114
+  },
+  {
+   "cell": 15,
+   "tile": 115
+  },
+  {
+   "cell": 16,
+   "tile": 83
+  },
+  {
+   "cell": 17,
+   "tile": 84
+  },
+  {
+   "cell": 18,
+   "tile": 18
+  },
+  {
+   "cell": 19,
+   "tile": 19
+  },
+  {
+   "cell": 22,
+   "tile": 10
+  },
+  {
+   "cell": 23,
+   "tile": 117
+  },
+  {
+   "cell": 24,
+   "tile": 118
+  },
+  {
+   "cell": 25,
+   "tile": 119
+  },
+  {
+   "cell": 26,
+   "tile": 120
+  },
+  {
+   "cell": 27,
+   "tile": 121
+  },
+  {
+   "cell": 32,
+   "tile": 20
+  },
+  {
+   "cell": 33,
+   "tile": 123
+  },
+  {
+   "cell": 34,
+   "tile": 22
+  },
+  {
+   "cell": 35,
+   "tile": 125
+  },
+  {
+   "cell": 36,
+   "tile": 126
+  },
+  {
+   "cell": 37,
+   "tile": 127
+  },
+  {
+   "cell": 42,
+   "tile": 29
+  },
+  {
+   "cell": 43,
+   "tile": 30
+  },
+  {
+   "cell": 44,
+   "tile": 130
+  },
+  {
+   "cell": 45,
+   "tile": 131
+  },
+  {
+   "cell": 46,
+   "tile": 97
+  },
+  {
+   "cell": 47,
+   "tile": 132
+  },
+  {
+   "cell": 48,
+   "tile": 133
+  },
+  {
+   "cell": 52,
+   "tile": 38
+  },
+  {
+   "cell": 53,
+   "tile": 39
+  },
+  {
+   "cell": 54,
+   "tile": 40
+  },
+  {
+   "cell": 55,
+   "tile": 137
+  },
+  {
+   "cell": 56,
+   "tile": 51
+  },
+  {
+   "cell": 57,
+   "tile": 138
+  },
+  {
+   "cell": 58,
+   "tile": 139
+  },
+  {
+   "cell": 64,
+   "tile": 140
+  },
+  {
+   "cell": 65,
+   "tile": 104
+  },
+  {
+   "cell": 66,
+   "tile": 58
+  },
+  {
+   "cell": 67,
+   "tile": 59
+  },
+  {
+   "cell": 68,
+   "tile": 60
+  },
+  {
+   "cell": 74,
+   "tile": 105
+  },
+  {
+   "cell": 75,
+   "tile": 106
+  },
+  {
+   "cell": 76,
+   "tile": 107
+  },
+  {
+   "cell": 77,
+   "tile": 67
+  },
+  {
+   "cell": 78,
+   "tile": 68
+  },
+  {
+   "cell": 85,
+   "tile": 108
+  },
+  {
+   "cell": 86,
+   "tile": 109
+  },
+  {
+   "cell": 87,
+   "tile": 72
+  },
+  {
+   "cell": 88,
+   "tile": 73
+  },
+  {
+   "cell": 94,
+   "tile": 76
+  },
+  {
+   "cell": 95,
+   "tile": 77
+  },
+  {
+   "cell": 96,
+   "tile": 78
+  },
+  {
+   "cell": 97,
+   "tile": 79
+  },
+  {
+   "cell": 98,
+   "tile": 80
+  }
+ ]
+}

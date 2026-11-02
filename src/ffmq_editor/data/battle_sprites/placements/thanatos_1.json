@@ -1,0 +1,177 @@
+{
+ "frameName": "thanatos",
+ "frameIndex": 1,
+ "enemy": 63,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 3,
+   "tile": 56
+  },
+  {
+   "cell": 4,
+   "tile": 4
+  },
+  {
+   "cell": 5,
+   "tile": 5
+  },
+  {
+   "cell": 6,
+   "tile": 6
+  },
+  {
+   "cell": 7,
+   "tile": 7
+  },
+  {
+   "cell": 11,
+   "tile": 57
+  },
+  {
+   "cell": 12,
+   "tile": 58
+  },
+  {
+   "cell": 13,
+   "tile": 13
+  },
+  {
+   "cell": 14,
+   "tile": 14
+  },
+  {
+   "cell": 15,
+   "tile": 15
+  },
+  {
+   "cell": 19,
+   "tile": 59
+  },
+  {
+   "cell": 20,
+   "tile": 60
+  },
+  {
+   "cell": 21,
+   "tile": 20
+  },
+  {
+   "cell": 22,
+   "tile": 21
+  },
+  {
+   "cell": 23,
+   "tile": 22
+  },
+  {
+   "cell": 27,
+   "tile": 61
+  },
+  {
+   "cell": 28,
+   "tile": 62
+  },
+  {
+   "cell": 29,
+   "tile": 28
+  },
+  {
+   "cell": 30,
+   "tile": 63
+  },
+  {
+   "cell": 34,
+   "tile": 64
+  },
+  {
+   "cell": 35,
+   "tile": 65
+  },
+  {
+   "cell": 36,
+   "tile": 66
+  },
+  {
+   "cell": 37,
+   "tile": 36
+  },
+  {
+   "cell": 38,
+   "tile": 67
+  },
+  {
+   "cell": 41,
+   "tile": 68
+  },
+  {
+   "cell": 42,
+   "tile": 69
+  },
+  {
+   "cell": 43,
+   "tile": 70
+  },
+  {
+   "cell": 44,
+   "tile": 71
+  },
+  {
+   "cell": 45,
+   "tile": 72
+  },
+  {
+   "cell": 46,
+   "tile": 44
+  },
+  {
+   "cell": 49,
+   "tile": 73
+  },
+  {
+   "cell": 50,
+   "tile": 74
+  },
+  {
+   "cell": 51,
+   "tile": 75
+  },
+  {
+   "cell": 52,
+   "tile": 76
+  },
+  {
+   "cell": 53,
+   "tile": 48
+  },
+  {
+   "cell": 54,
+   "tile": 49
+  },
+  {
+   "cell": 57,
+   "tile": 77
+  },
+  {
+   "cell": 58,
+   "tile": 78
+  },
+  {
+   "cell": 59,
+   "tile": 79
+  },
+  {
+   "cell": 60,
+   "tile": 80
+  },
+  {
+   "cell": 61,
+   "tile": 81
+  },
+  {
+   "cell": 62,
+   "tile": 55
+  }
+ ]
+}

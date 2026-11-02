@@ -9,7 +9,9 @@ from .render import color_rgb
 class PixelCanvas(QWidget):
     CELL=36
     def __init__(self,editor):
-        super().__init__();self.editor=editor;self.draft=None;self.last=None;self.setFixedSize(289,289);self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        super().__init__();self.editor=editor;self.draft=None;self.last=None;self.on_paint=None;self.setFixedSize(289,289);self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+    def _notify(self):
+        if self.on_paint is not None and self.draft is not None:self.on_paint(self.draft)
     def paintEvent(self,event):
         p=QPainter(self);data=self.draft if self.draft is not None else self.editor.pixels
         for y in range(8):
@@ -35,13 +37,13 @@ class PixelCanvas(QWidget):
                 x,y=pending.pop()
                 if (x,y) in visited or not 0<=x<8 or not 0<=y<8 or self.draft[y,x]!=old:continue
                 visited.add((x,y));self.draft[y,x]=color;pending.extend(((x-1,y),(x+1,y),(x,y-1),(x,y+1)))
-            self.finish('Fill graphic pixels');return
-        self.draft[y,x]=color;self.update()
+            self._notify();self.finish('Fill graphic pixels');return
+        self.draft[y,x]=color;self.update();self._notify()
     def draw_to(self,point):
         if self.draft is None or point is None:return
         x,y=self.last;tx,ty=point;n=max(abs(tx-x),abs(ty-y),1);color=0 if self.editor.tool.currentText()=='Eraser' else self.editor.color
         for i in range(n+1):self.draft[round(y+(ty-y)*i/n),round(x+(tx-x)*i/n)]=color
-        self.last=point;self.update()
+        self.last=point;self.update();self._notify()
     def mouseMoveEvent(self,event):self.draw_to(self.cell(event))
     def mouseReleaseEvent(self,event):
         if event.button()==Qt.MouseButton.LeftButton and self.draft is not None:self.draw_to(self.cell(event));self.finish('Paint graphic pixels')
@@ -52,7 +54,10 @@ class PixelCanvas(QWidget):
     def keyPressEvent(self,event):
         if event.key()==Qt.Key.Key_Escape:self.cancel()
         else:super().keyPressEvent(event)
-    def cancel(self):self.draft=None;self.last=None;self.update()
+    def cancel(self):
+        self.draft=None;self.last=None
+        if self.on_paint is not None:self.on_paint(self.editor.pixels)
+        self.update()
 
 class PixelWindow(QMainWindow):
     def __init__(self,w):

@@ -1,0 +1,101 @@
+{
+ "frameName": "stoney-roost",
+ "frameIndex": 1,
+ "enemy": 34,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 27
+  },
+  {
+   "cell": 5,
+   "tile": 28
+  },
+  {
+   "cell": 6,
+   "tile": 29
+  },
+  {
+   "cell": 7,
+   "tile": 30
+  },
+  {
+   "cell": 8,
+   "tile": 31
+  },
+  {
+   "cell": 9,
+   "tile": 32
+  },
+  {
+   "cell": 10,
+   "tile": 33
+  },
+  {
+   "cell": 11,
+   "tile": 34
+  },
+  {
+   "cell": 12,
+   "tile": 35
+  },
+  {
+   "cell": 13,
+   "tile": 36
+  },
+  {
+   "cell": 14,
+   "tile": 37
+  },
+  {
+   "cell": 15,
+   "tile": 38
+  },
+  {
+   "cell": 16,
+   "tile": 39
+  },
+  {
+   "cell": 17,
+   "tile": 40
+  },
+  {
+   "cell": 19,
+   "tile": 41
+  },
+  {
+   "cell": 20,
+   "tile": 42
+  },
+  {
+   "cell": 21,
+   "tile": 43
+  },
+  {
+   "cell": 22,
+   "tile": 44
+  },
+  {
+   "cell": 25,
+   "tile": 45
+  },
+  {
+   "cell": 26,
+   "tile": 46
+  },
+  {
+   "cell": 27,
+   "tile": 47
+  },
+  {
+   "cell": 28,
+   "tile": 48
+  },
+  {
+   "cell": 31,
+   "tile": 26
+  }
+ ]
+}

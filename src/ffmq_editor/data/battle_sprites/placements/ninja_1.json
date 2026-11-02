@@ -1,0 +1,33 @@
+{
+ "frameName": "ninja",
+ "frameIndex": 1,
+ "enemy": 28,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 26,
+   "tile": 28
+  },
+  {
+   "cell": 27,
+   "tile": 29
+  },
+  {
+   "cell": 31,
+   "tile": 30
+  },
+  {
+   "cell": 32,
+   "tile": 31
+  },
+  {
+   "cell": 33,
+   "tile": 32
+  },
+  {
+   "cell": 34,
+   "tile": 33
+  }
+ ]
+}

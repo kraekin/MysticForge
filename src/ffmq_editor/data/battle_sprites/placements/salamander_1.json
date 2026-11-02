@@ -1,0 +1,81 @@
+{
+ "frameName": "salamander",
+ "frameIndex": 1,
+ "enemy": 14,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 14,
+   "tile": 30
+  },
+  {
+   "cell": 15,
+   "tile": 31
+  },
+  {
+   "cell": 19,
+   "tile": 32
+  },
+  {
+   "cell": 20,
+   "tile": 33
+  },
+  {
+   "cell": 21,
+   "tile": 34
+  },
+  {
+   "cell": 22,
+   "tile": 17
+  },
+  {
+   "cell": 24,
+   "tile": 35
+  },
+  {
+   "cell": 25,
+   "tile": 36
+  },
+  {
+   "cell": 26,
+   "tile": 37
+  },
+  {
+   "cell": 27,
+   "tile": 38
+  },
+  {
+   "cell": 28,
+   "tile": 22
+  },
+  {
+   "cell": 29,
+   "tile": 23
+  },
+  {
+   "cell": 30,
+   "tile": 39
+  },
+  {
+   "cell": 31,
+   "tile": 40
+  },
+  {
+   "cell": 32,
+   "tile": 41
+  },
+  {
+   "cell": 33,
+   "tile": 27
+  },
+  {
+   "cell": 34,
+   "tile": 28
+  },
+  {
+   "cell": 35,
+   "tile": 29
+  }
+ ]
+}

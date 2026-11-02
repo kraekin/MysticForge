@@ -293,6 +293,8 @@ class MainWindow(QMainWindow):
         edit = self.menuBar().addMenu("&Edit");self.edit_menu=edit
         from .metatile_editor import open_metatiles
         self.action(edit,"Metatile editor…",lambda:open_metatiles(self))
+        from .battle_enemy_editor import open_battle_enemies
+        self.action(edit,"Battle enemy graphics…",lambda:open_battle_enemies(self))
         from .rom_fixes import show_fixes
         self.action(edit,"Optional ROM fixes…",lambda:show_fixes(self))
         undo = self.stack.createUndoAction(self,"Undo"); undo.setShortcut(QKeySequence.StandardKey.Undo); edit.addAction(undo)
@@ -620,6 +622,7 @@ class MainWindow(QMainWindow):
         if hasattr(self,"database_window"):self.database_window.project_changed()
         if hasattr(self,"metatile_window"):self.metatile_window.refresh()
         if hasattr(self,"pixel_window"):self.pixel_window.refresh()
+        if hasattr(self,"battle_window"):self.battle_window.refresh()
         if self._refreshing:return
         self._refreshing=True
         try:

@@ -1,0 +1,201 @@
+{
+ "frameName": "stheno",
+ "frameIndex": 2,
+ "enemy": 61,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 71
+  },
+  {
+   "cell": 3,
+   "tile": 72
+  },
+  {
+   "cell": 8,
+   "tile": 73
+  },
+  {
+   "cell": 9,
+   "tile": 74
+  },
+  {
+   "cell": 10,
+   "tile": 75
+  },
+  {
+   "cell": 11,
+   "tile": 76
+  },
+  {
+   "cell": 12,
+   "tile": 77
+  },
+  {
+   "cell": 16,
+   "tile": 78
+  },
+  {
+   "cell": 17,
+   "tile": 79
+  },
+  {
+   "cell": 18,
+   "tile": 80
+  },
+  {
+   "cell": 19,
+   "tile": 81
+  },
+  {
+   "cell": 20,
+   "tile": 82
+  },
+  {
+   "cell": 21,
+   "tile": 83
+  },
+  {
+   "cell": 22,
+   "tile": 84
+  },
+  {
+   "cell": 25,
+   "tile": 85
+  },
+  {
+   "cell": 26,
+   "tile": 86
+  },
+  {
+   "cell": 27,
+   "tile": 87
+  },
+  {
+   "cell": 28,
+   "tile": 88
+  },
+  {
+   "cell": 29,
+   "tile": 89
+  },
+  {
+   "cell": 30,
+   "tile": 90
+  },
+  {
+   "cell": 31,
+   "tile": 91
+  },
+  {
+   "cell": 34,
+   "tile": 92
+  },
+  {
+   "cell": 35,
+   "tile": 24
+  },
+  {
+   "cell": 36,
+   "tile": 25
+  },
+  {
+   "cell": 37,
+   "tile": 93
+  },
+  {
+   "cell": 38,
+   "tile": 94
+  },
+  {
+   "cell": 39,
+   "tile": 95
+  },
+  {
+   "cell": 41,
+   "tile": 29
+  },
+  {
+   "cell": 42,
+   "tile": 30
+  },
+  {
+   "cell": 43,
+   "tile": 31
+  },
+  {
+   "cell": 44,
+   "tile": 32
+  },
+  {
+   "cell": 45,
+   "tile": 33
+  },
+  {
+   "cell": 46,
+   "tile": 34
+  },
+  {
+   "cell": 47,
+   "tile": 35
+  },
+  {
+   "cell": 49,
+   "tile": 36
+  },
+  {
+   "cell": 50,
+   "tile": 37
+  },
+  {
+   "cell": 51,
+   "tile": 38
+  },
+  {
+   "cell": 52,
+   "tile": 39
+  },
+  {
+   "cell": 53,
+   "tile": 40
+  },
+  {
+   "cell": 54,
+   "tile": 41
+  },
+  {
+   "cell": 55,
+   "tile": 42
+  },
+  {
+   "cell": 57,
+   "tile": 43
+  },
+  {
+   "cell": 58,
+   "tile": 44
+  },
+  {
+   "cell": 59,
+   "tile": 45
+  },
+  {
+   "cell": 60,
+   "tile": 46
+  },
+  {
+   "cell": 61,
+   "tile": 47
+  },
+  {
+   "cell": 62,
+   "tile": 48
+  },
+  {
+   "cell": 63,
+   "tile": 49
+  }
+ ]
+}

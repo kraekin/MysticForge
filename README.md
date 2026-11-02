@@ -21,6 +21,9 @@
 
 ## Latest Updates
 
+### Oct 30, 2026
+* **Battle Enemy Graphics:** New **Battle enemy graphics** editor (Edit menu → *Battle enemy graphics…*). Paint the large in-battle enemy sprites. Pick an enemy, pick a tile, paint with 8 colors; PNG import/export; edits persist and are written on export.
+
 ### Sept 19, 2026
 * **Map/Overworld Editing:** Various enhancements and additions to map and overworld editing. Tile sizes are bigger and easier to see. you can add new overworld locations and maps, change their name on the overworld. change map sizes, etc. 
 

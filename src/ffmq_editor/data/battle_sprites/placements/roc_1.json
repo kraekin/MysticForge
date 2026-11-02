@@ -1,0 +1,117 @@
+{
+ "frameName": "roc",
+ "frameIndex": 1,
+ "enemy": 21,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 32
+  },
+  {
+   "cell": 3,
+   "tile": 33
+  },
+  {
+   "cell": 4,
+   "tile": 34
+  },
+  {
+   "cell": 5,
+   "tile": 35
+  },
+  {
+   "cell": 7,
+   "tile": 36
+  },
+  {
+   "cell": 8,
+   "tile": 37
+  },
+  {
+   "cell": 9,
+   "tile": 38
+  },
+  {
+   "cell": 10,
+   "tile": 39
+  },
+  {
+   "cell": 12,
+   "tile": 40
+  },
+  {
+   "cell": 13,
+   "tile": 41
+  },
+  {
+   "cell": 14,
+   "tile": 42
+  },
+  {
+   "cell": 15,
+   "tile": 43
+  },
+  {
+   "cell": 16,
+   "tile": 44
+  },
+  {
+   "cell": 18,
+   "tile": 45
+  },
+  {
+   "cell": 19,
+   "tile": 46
+  },
+  {
+   "cell": 20,
+   "tile": 47
+  },
+  {
+   "cell": 21,
+   "tile": 48
+  },
+  {
+   "cell": 22,
+   "tile": 49
+  },
+  {
+   "cell": 24,
+   "tile": 23
+  },
+  {
+   "cell": 25,
+   "tile": 24
+  },
+  {
+   "cell": 26,
+   "tile": 50
+  },
+  {
+   "cell": 27,
+   "tile": 51
+  },
+  {
+   "cell": 28,
+   "tile": 52
+  },
+  {
+   "cell": 31,
+   "tile": 28
+  },
+  {
+   "cell": 32,
+   "tile": 29
+  },
+  {
+   "cell": 33,
+   "tile": 30
+  },
+  {
+   "cell": 34,
+   "tile": 31
+  }
+ ]
+}

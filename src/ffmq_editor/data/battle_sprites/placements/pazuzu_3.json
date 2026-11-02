@@ -1,0 +1,293 @@
+{
+ "frameName": "pazuzu",
+ "frameIndex": 3,
+ "enemy": 78,
+ "cols": 10,
+ "rows": 10,
+ "placement": [
+  {
+   "cell": 4,
+   "tile": 229
+  },
+  {
+   "cell": 5,
+   "tile": 230
+  },
+  {
+   "cell": 13,
+   "tile": 231
+  },
+  {
+   "cell": 14,
+   "tile": 232
+  },
+  {
+   "cell": 15,
+   "tile": 233
+  },
+  {
+   "cell": 22,
+   "tile": 234
+  },
+  {
+   "cell": 23,
+   "tile": 235
+  },
+  {
+   "cell": 24,
+   "tile": 236
+  },
+  {
+   "cell": 25,
+   "tile": 237
+  },
+  {
+   "cell": 28,
+   "tile": 238
+  },
+  {
+   "cell": 29,
+   "tile": 239
+  },
+  {
+   "cell": 31,
+   "tile": 240
+  },
+  {
+   "cell": 32,
+   "tile": 241
+  },
+  {
+   "cell": 33,
+   "tile": 242
+  },
+  {
+   "cell": 34,
+   "tile": 243
+  },
+  {
+   "cell": 38,
+   "tile": 244
+  },
+  {
+   "cell": 39,
+   "tile": 245
+  },
+  {
+   "cell": 41,
+   "tile": 246
+  },
+  {
+   "cell": 42,
+   "tile": 247
+  },
+  {
+   "cell": 43,
+   "tile": 248
+  },
+  {
+   "cell": 44,
+   "tile": 249
+  },
+  {
+   "cell": 45,
+   "tile": 250
+  },
+  {
+   "cell": 46,
+   "tile": 251
+  },
+  {
+   "cell": 47,
+   "tile": 252
+  },
+  {
+   "cell": 48,
+   "tile": 253
+  },
+  {
+   "cell": 49,
+   "tile": 254
+  },
+  {
+   "cell": 51,
+   "tile": 255
+  },
+  {
+   "cell": 52,
+   "tile": 256
+  },
+  {
+   "cell": 53,
+   "tile": 257
+  },
+  {
+   "cell": 54,
+   "tile": 258
+  },
+  {
+   "cell": 55,
+   "tile": 259
+  },
+  {
+   "cell": 56,
+   "tile": 260
+  },
+  {
+   "cell": 57,
+   "tile": 261
+  },
+  {
+   "cell": 58,
+   "tile": 262
+  },
+  {
+   "cell": 59,
+   "tile": 263
+  },
+  {
+   "cell": 61,
+   "tile": 264
+  },
+  {
+   "cell": 62,
+   "tile": 265
+  },
+  {
+   "cell": 63,
+   "tile": 266
+  },
+  {
+   "cell": 64,
+   "tile": 267
+  },
+  {
+   "cell": 65,
+   "tile": 268
+  },
+  {
+   "cell": 66,
+   "tile": 269
+  },
+  {
+   "cell": 67,
+   "tile": 270
+  },
+  {
+   "cell": 68,
+   "tile": 271
+  },
+  {
+   "cell": 69,
+   "tile": 272
+  },
+  {
+   "cell": 71,
+   "tile": 273
+  },
+  {
+   "cell": 72,
+   "tile": 274
+  },
+  {
+   "cell": 73,
+   "tile": 275
+  },
+  {
+   "cell": 74,
+   "tile": 276
+  },
+  {
+   "cell": 75,
+   "tile": 277
+  },
+  {
+   "cell": 76,
+   "tile": 278
+  },
+  {
+   "cell": 77,
+   "tile": 279
+  },
+  {
+   "cell": 78,
+   "tile": 280
+  },
+  {
+   "cell": 79,
+   "tile": 281
+  },
+  {
+   "cell": 81,
+   "tile": 282
+  },
+  {
+   "cell": 82,
+   "tile": 283
+  },
+  {
+   "cell": 83,
+   "tile": 284
+  },
+  {
+   "cell": 84,
+   "tile": 285
+  },
+  {
+   "cell": 85,
+   "tile": 286
+  },
+  {
+   "cell": 86,
+   "tile": 287
+  },
+  {
+   "cell": 87,
+   "tile": 288
+  },
+  {
+   "cell": 88,
+   "tile": 289
+  },
+  {
+   "cell": 89,
+   "tile": 290
+  },
+  {
+   "cell": 90,
+   "tile": 291
+  },
+  {
+   "cell": 91,
+   "tile": 292
+  },
+  {
+   "cell": 92,
+   "tile": 293
+  },
+  {
+   "cell": 93,
+   "tile": 294
+  },
+  {
+   "cell": 94,
+   "tile": 295
+  },
+  {
+   "cell": 95,
+   "tile": 296
+  },
+  {
+   "cell": 96,
+   "tile": 297
+  },
+  {
+   "cell": 97,
+   "tile": 298
+  },
+  {
+   "cell": 98,
+   "tile": 299
+  }
+ ]
+}

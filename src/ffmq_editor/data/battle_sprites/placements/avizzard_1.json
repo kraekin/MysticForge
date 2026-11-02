@@ -1,0 +1,137 @@
+{
+ "frameName": "avizzard",
+ "frameIndex": 1,
+ "enemy": 54,
+ "cols": 6,
+ "rows": 6,
+ "placement": [
+  {
+   "cell": 0,
+   "tile": 32
+  },
+  {
+   "cell": 1,
+   "tile": 1
+  },
+  {
+   "cell": 2,
+   "tile": 2
+  },
+  {
+   "cell": 3,
+   "tile": 3
+  },
+  {
+   "cell": 4,
+   "tile": 4
+  },
+  {
+   "cell": 5,
+   "tile": 5
+  },
+  {
+   "cell": 6,
+   "tile": 33
+  },
+  {
+   "cell": 7,
+   "tile": 34
+  },
+  {
+   "cell": 8,
+   "tile": 35
+  },
+  {
+   "cell": 9,
+   "tile": 36
+  },
+  {
+   "cell": 10,
+   "tile": 10
+  },
+  {
+   "cell": 11,
+   "tile": 11
+  },
+  {
+   "cell": 12,
+   "tile": 12
+  },
+  {
+   "cell": 13,
+   "tile": 37
+  },
+  {
+   "cell": 14,
+   "tile": 38
+  },
+  {
+   "cell": 15,
+   "tile": 15
+  },
+  {
+   "cell": 16,
+   "tile": 39
+  },
+  {
+   "cell": 18,
+   "tile": 17
+  },
+  {
+   "cell": 19,
+   "tile": 18
+  },
+  {
+   "cell": 20,
+   "tile": 40
+  },
+  {
+   "cell": 21,
+   "tile": 41
+  },
+  {
+   "cell": 22,
+   "tile": 42
+  },
+  {
+   "cell": 24,
+   "tile": 22
+  },
+  {
+   "cell": 25,
+   "tile": 23
+  },
+  {
+   "cell": 26,
+   "tile": 24
+  },
+  {
+   "cell": 27,
+   "tile": 43
+  },
+  {
+   "cell": 28,
+   "tile": 44
+  },
+  {
+   "cell": 29,
+   "tile": 27
+  },
+  {
+   "cell": 30,
+   "tile": 28
+  },
+  {
+   "cell": 31,
+   "tile": 29
+  },
+  {
+   "cell": 34,
+   "tile": 30
+  },
+  {
+   "cell": 35,
+   "tile": 31
+  }
+ ]
+}

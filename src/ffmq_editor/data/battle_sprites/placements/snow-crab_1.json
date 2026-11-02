@@ -1,0 +1,217 @@
+{
+ "frameName": "snow-crab",
+ "frameIndex": 1,
+ "enemy": 69,
+ "cols": 8,
+ "rows": 8,
+ "placement": [
+  {
+   "cell": 2,
+   "tile": 0
+  },
+  {
+   "cell": 3,
+   "tile": 1
+  },
+  {
+   "cell": 4,
+   "tile": 2
+  },
+  {
+   "cell": 10,
+   "tile": 3
+  },
+  {
+   "cell": 11,
+   "tile": 4
+  },
+  {
+   "cell": 12,
+   "tile": 5
+  },
+  {
+   "cell": 13,
+   "tile": 6
+  },
+  {
+   "cell": 14,
+   "tile": 7
+  },
+  {
+   "cell": 19,
+   "tile": 8
+  },
+  {
+   "cell": 20,
+   "tile": 9
+  },
+  {
+   "cell": 21,
+   "tile": 10
+  },
+  {
+   "cell": 22,
+   "tile": 11
+  },
+  {
+   "cell": 23,
+   "tile": 12
+  },
+  {
+   "cell": 24,
+   "tile": 13
+  },
+  {
+   "cell": 26,
+   "tile": 14
+  },
+  {
+   "cell": 27,
+   "tile": 15
+  },
+  {
+   "cell": 28,
+   "tile": 16
+  },
+  {
+   "cell": 29,
+   "tile": 17
+  },
+  {
+   "cell": 30,
+   "tile": 18
+  },
+  {
+   "cell": 31,
+   "tile": 19
+  },
+  {
+   "cell": 32,
+   "tile": 20
+  },
+  {
+   "cell": 33,
+   "tile": 21
+  },
+  {
+   "cell": 34,
+   "tile": 22
+  },
+  {
+   "cell": 35,
+   "tile": 23
+  },
+  {
+   "cell": 36,
+   "tile": 24
+  },
+  {
+   "cell": 37,
+   "tile": 25
+  },
+  {
+   "cell": 38,
+   "tile": 26
+  },
+  {
+   "cell": 39,
+   "tile": 27
+  },
+  {
+   "cell": 40,
+   "tile": 28
+  },
+  {
+   "cell": 41,
+   "tile": 29
+  },
+  {
+   "cell": 42,
+   "tile": 52
+  },
+  {
+   "cell": 43,
+   "tile": 53
+  },
+  {
+   "cell": 44,
+   "tile": 54
+  },
+  {
+   "cell": 45,
+   "tile": 55
+  },
+  {
+   "cell": 46,
+   "tile": 34
+  },
+  {
+   "cell": 47,
+   "tile": 35
+  },
+  {
+   "cell": 48,
+   "tile": 36
+  },
+  {
+   "cell": 49,
+   "tile": 37
+  },
+  {
+   "cell": 50,
+   "tile": 56
+  },
+  {
+   "cell": 51,
+   "tile": 57
+  },
+  {
+   "cell": 52,
+   "tile": 58
+  },
+  {
+   "cell": 53,
+   "tile": 59
+  },
+  {
+   "cell": 54,
+   "tile": 42
+  },
+  {
+   "cell": 55,
+   "tile": 43
+  },
+  {
+   "cell": 56,
+   "tile": 44
+  },
+  {
+   "cell": 57,
+   "tile": 45
+  },
+  {
+   "cell": 58,
+   "tile": 60
+  },
+  {
+   "cell": 59,
+   "tile": 61
+  },
+  {
+   "cell": 60,
+   "tile": 62
+  },
+  {
+   "cell": 61,
+   "tile": 63
+  },
+  {
+   "cell": 62,
+   "tile": 50
+  },
+  {
+   "cell": 63,
+   "tile": 51
+  }
+ ]
+}
